@@ -513,7 +513,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			inp.WithHint(hint)
 			inp.SetValue(currentCmd)
 			if m.currentTab != SearchTabIndex {
-				inp.WithExtraHints("[Ctrl+W] apply + save to config.yaml")
+				inp.WithExtraHints("[Ctrl+w] apply + save to config.yaml")
 			}
 			inp.SetSize(m.width, m.height)
 			m.searchInput = inp
