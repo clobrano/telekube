@@ -356,6 +356,20 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Handle Search tab input mode
 	if m.viewState == ViewSearchTab {
+		// Intercept "w" when editing an existing config tab command (no actionID):
+		// apply the typed command AND immediately save to config.yaml.
+		if keyMsg, ok := msg.(tea.KeyMsg); ok && keyMsg.String() == "w" &&
+			m.searchInput.ActionID() == "" && m.currentTab != SearchTabIndex {
+			newValue := m.searchInput.Value()
+			m.searchInput.Reset()
+			m.viewState = ViewList
+			configTabIndex := m.currentTab - 1
+			if configTabIndex >= 0 && configTabIndex < len(m.config.Tabs) {
+				m.config.Tabs[configTabIndex].Command = normalizeGetCommand(newValue)
+			}
+			return m, tea.Batch(m.startLoading(m.loadResources()), m.saveCurrentTabToConfig())
+		}
+
 		var cmd tea.Cmd
 		m.searchInput, cmd = m.searchInput.Update(msg)
 
@@ -472,6 +486,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			inp := dialog.NewInput("kubectl get", "pods -A")
 			inp.WithHint(hint)
 			inp.SetValue(currentCmd)
+			if m.currentTab != SearchTabIndex {
+				inp.WithExtraHints("[w] apply + save to config.yaml")
+			}
 			inp.SetSize(m.width, m.height)
 			m.searchInput = inp
 			m.viewState = ViewSearchTab
@@ -773,11 +790,11 @@ func (m *Model) View() string {
 		}
 		b.WriteString(hint)
 	} else if m.search.IsFiltered() {
-		b.WriteString("[Esc] clear filter  [/] modify filter  [d]escribe [L]ogs [D]elete [e]dit [x]exec")
+		b.WriteString("[w]save  [+]new tab  [Esc] clear filter  [/] modify filter  [d]escribe [L]ogs [D]elete [e]dit [x]exec")
 	} else if m.currentTab == SearchTabIndex {
-		b.WriteString("[Enter] enter command  [/]filter results  [w]save as tab  [+]new tab  [r]efresh  [q]uit")
+		b.WriteString("[Enter] enter command  [w]save as tab  [+]new tab  [/]filter  [r]efresh  [q]uit")
 	} else {
-		b.WriteString("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [x]exec [R]estart  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [w]save [+]new tab [?]help")
+		b.WriteString("[w]save  [+]new tab  [d]escribe [L]ogs [Y]aml [D]elete [e]dit [x]exec [R]estart  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help")
 	}
 
 	return b.String()
