@@ -49,6 +49,32 @@ func normalizeGetCommand(command string) string {
 	return trimmed
 }
 
+// wrapAtWidth word-wraps text at the given column width, preserving words.
+// Returns the text unchanged when width is 0 or the text already fits.
+func wrapAtWidth(text string, width int) string {
+	if width <= 0 || len(text) <= width {
+		return text
+	}
+	words := strings.Fields(text)
+	var sb strings.Builder
+	lineLen := 0
+	for i, word := range words {
+		if i == 0 {
+			sb.WriteString(word)
+			lineLen = len(word)
+		} else if lineLen+1+len(word) <= width {
+			sb.WriteByte(' ')
+			sb.WriteString(word)
+			lineLen += 1 + len(word)
+		} else {
+			sb.WriteByte('\n')
+			sb.WriteString(word)
+			lineLen = len(word)
+		}
+	}
+	return sb.String()
+}
+
 // getNamespaceFromCommand extracts the explicit namespace from a kubectl command string.
 // Returns "" if -A/--all-namespaces is used or no namespace flag is present.
 func getNamespaceFromCommand(command string) string {
@@ -599,8 +625,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.header.SetWidth(msg.Width)
 		m.tabs.SetWidth(msg.Width)
 		m.search.SetWidth(msg.Width)
-		// List height = total height - header (1) - tabs (1) - search (1 if active or filtered) - footer area (3)
-		listHeight := msg.Height - 5
+		// List height = total height - header (1) - tabs (1) - search (1 if active or filtered) - footer area (4: \n\n + up to 2 footer lines)
+		listHeight := msg.Height - 6
 		if m.search.IsActive() || m.search.IsFiltered() {
 			listHeight--
 		}
@@ -790,11 +816,11 @@ func (m *Model) View() string {
 		}
 		b.WriteString(hint)
 	} else if m.search.IsFiltered() {
-		b.WriteString("[w]save  [+]new tab  [Esc] clear filter  [/] modify filter  [d]escribe [L]ogs [D]elete [e]dit [x]exec")
+		b.WriteString(wrapAtWidth("[Esc] clear filter  [/] modify filter  [d]escribe [L]ogs [D]elete [e]dit [x]exec  [w]save [+]new tab", m.width))
 	} else if m.currentTab == SearchTabIndex {
-		b.WriteString("[Enter] enter command  [w]save as tab  [+]new tab  [/]filter  [r]efresh  [q]uit")
+		b.WriteString(wrapAtWidth("[Enter] enter command  [/]filter results  [r]efresh  [q]uit  [w]save as tab  [+]new tab", m.width))
 	} else {
-		b.WriteString("[w]save  [+]new tab  [d]escribe [L]ogs [Y]aml [D]elete [e]dit [x]exec [R]estart  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help")
+		b.WriteString(wrapAtWidth("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [x]exec [R]estart  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [w]save [+]new tab", m.width))
 	}
 
 	return b.String()
