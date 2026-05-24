@@ -108,6 +108,11 @@ func (m *Model) Count() int {
 	return len(m.tabs)
 }
 
+// AddTab appends a new tab with the given name
+func (m *Model) AddTab(name string) {
+	m.tabs = append(m.tabs, name)
+}
+
 // View renders the tab bar
 func (m *Model) View() string {
 	if len(m.tabs) == 0 {

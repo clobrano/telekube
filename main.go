@@ -79,7 +79,7 @@ func main() {
 	k := kubectl.NewKubectl(cfg.KubectlBin)
 
 	// Create and run the TUI
-	model := tui.NewModel(cfg, k)
+	model := tui.NewModel(cfg, k, configPath)
 	p := tea.NewProgram(model, tea.WithAltScreen())
 
 	if _, err := p.Run(); err != nil {

@@ -119,6 +119,18 @@ func EnsureConfigExists() (string, error) {
 	return path, nil
 }
 
+// SaveConfig writes the config to the given path as YAML after validating it.
+func SaveConfig(cfg *Config, path string) error {
+	if err := cfg.Validate(); err != nil {
+		return fmt.Errorf("config validation failed: %w", err)
+	}
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("marshal config: %w", err)
+	}
+	return os.WriteFile(path, data, 0644)
+}
+
 // Validate checks if the configuration is valid
 func (c *Config) Validate() error {
 	if c.KubectlBin == "" {

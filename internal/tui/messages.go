@@ -71,6 +71,15 @@ type ExecRequestMsg struct {
 	Container string
 }
 
+// TabAddedMsg is sent when a new tab has been validated and saved to config
+type TabAddedMsg struct {
+	Name    string
+	Command string
+}
+
+// ConfigSavedMsg is sent when the current config has been persisted to disk
+type ConfigSavedMsg struct{}
+
 // TickMsg is sent periodically to trigger auto-refresh
 type TickMsg struct{}
 

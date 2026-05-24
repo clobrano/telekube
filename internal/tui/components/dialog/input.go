@@ -23,6 +23,7 @@ type InputModel struct {
 	title       string
 	placeholder string
 	hint        string
+	extraHints  string // appended to the key-hint line at the bottom
 	textInput   textinput.Model
 	result      InputResult
 	width       int
@@ -95,6 +96,12 @@ func (m *InputModel) WithActionID(id string) *InputModel {
 	return m
 }
 
+// WithExtraHints appends extra key hints to the bottom hint line of the dialog.
+func (m *InputModel) WithExtraHints(hints string) *InputModel {
+	m.extraHints = hints
+	return m
+}
+
 // WithValue sets the initial value (builder pattern)
 func (m *InputModel) WithValue(value string) *InputModel {
 	m.textInput.SetValue(value)
@@ -145,6 +152,8 @@ func (m *InputModel) Reset() {
 	m.historyIndex = -1
 	m.draft = ""
 	m.suggestion = ""
+	m.actionID = ""
+	m.extraHints = ""
 }
 
 // HasSuggestion returns true when an autosuggestion is available.
@@ -306,6 +315,9 @@ func (m *InputModel) View() string {
 	}
 	if m.suggestion != "" {
 		hints += "  [Tab] → " + m.SuggestionFull()
+	}
+	if m.extraHints != "" {
+		hints += "  " + m.extraHints
 	}
 	b.WriteString(m.styles.Hint.Render(hints))
 

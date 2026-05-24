@@ -7,6 +7,7 @@ A terminal UI for exploring and managing Kubernetes clusters. Browse resources, 
 - **Multi-tab resource browsing** - View Pods, Deployments, Services, and other resources in configurable tabs
 - **Search tab** - Execute any kubectl command interactively from the first tab
 - **Command-based tabs** - Configure tabs with raw kubectl commands for maximum flexibility
+- **Runtime config editing** - Add new tabs or save commands to `config.yaml` without leaving the TUI
 - **Fuzzy search** - Filter resources in real-time with intelligent matching
 - **Multiple output formats** - View resources as table, YAML, or JSON
 - **Resource actions** - Describe, logs, delete, edit, exec, port-forward, scale, and rollout restart
@@ -52,6 +53,29 @@ The first tab is always the **Search** tab, which lets you run any kubectl comma
 5. Use `/` to filter the results with fuzzy search
 
 The Search tab is useful for ad-hoc queries without needing to configure a new tab.
+
+## Runtime Config Editing
+
+You can add new tabs and save commands to `config.yaml` directly from the TUI — no editor required.
+
+### Add a new tab (`+`)
+
+Press `+` from any tab to open a two-step dialog:
+
+1. Enter a name for the new tab (e.g. `Failing Pods`)
+2. Enter a `kubectl get` command (e.g. `pods -A --field-selector=status.phase!=Running`)
+
+The new tab is validated against the full config before `config.yaml` is written, so a bad command can never corrupt your configuration. On success the tab appears immediately and is focused.
+
+### Save a tab command (`w`)
+
+| Context | Behaviour |
+|---------|-----------|
+| **Config tab** (main view) | Saves the tab's current command to `config.yaml` immediately |
+| **Config tab** (inside the `Enter` edit dialog) | Press `w` instead of `Enter` to apply the new command **and** save it in one step |
+| **Search tab** | Opens a name prompt; saves the search command as a new permanent tab entry |
+
+Changes are written atomically — the config is validated before the file is overwritten.
 
 ## Fuzzy Filter
 
@@ -127,6 +151,16 @@ Press `/` to activate fuzzy filter mode. The filter uses fuzzy matching to filte
 | `Space` | Toggle selection on current item |
 | `a` | Select all |
 | `A` | Deselect all |
+
+### Config editing
+
+| Key | Action |
+|-----|--------|
+| `+` | Add a new tab (prompts for name then command) |
+| `Ctrl+W` | Save current tab command to `config.yaml` |
+| `Ctrl+W` *(Search tab)* | Save search command as a new named tab |
+| `Enter` *(edit dialog)* | Apply new command (run only) |
+| `Ctrl+W` *(edit dialog)* | Apply new command **and** save to `config.yaml` |
 
 ### Other
 
