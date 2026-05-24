@@ -157,10 +157,10 @@ Press `/` to activate fuzzy filter mode. The filter uses fuzzy matching to filte
 | Key | Action |
 |-----|--------|
 | `+` | Add a new tab (prompts for name then command) |
-| `w` | Save current tab command to `config.yaml` |
-| `w` *(Search tab)* | Save search command as a new named tab |
+| `Ctrl+W` | Save current tab command to `config.yaml` |
+| `Ctrl+W` *(Search tab)* | Save search command as a new named tab |
 | `Enter` *(edit dialog)* | Apply new command (run only) |
-| `w` *(edit dialog)* | Apply new command **and** save to `config.yaml` |
+| `Ctrl+W` *(edit dialog)* | Apply new command **and** save to `config.yaml` |
 
 ### Other
 

@@ -382,9 +382,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Handle Search tab input mode
 	if m.viewState == ViewSearchTab {
-		// Intercept "w" when editing an existing config tab command (no actionID):
+		// Intercept Ctrl+W when editing an existing config tab command (no actionID):
 		// apply the typed command AND immediately save to config.yaml.
-		if keyMsg, ok := msg.(tea.KeyMsg); ok && keyMsg.String() == "w" &&
+		if keyMsg, ok := msg.(tea.KeyMsg); ok && keyMsg.String() == "ctrl+w" &&
 			m.searchInput.ActionID() == "" && m.currentTab != SearchTabIndex {
 			newValue := m.searchInput.Value()
 			m.searchInput.Reset()
@@ -513,7 +513,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			inp.WithHint(hint)
 			inp.SetValue(currentCmd)
 			if m.currentTab != SearchTabIndex {
-				inp.WithExtraHints("[w] apply + save to config.yaml")
+				inp.WithExtraHints("[Ctrl+W] apply + save to config.yaml")
 			}
 			inp.SetSize(m.width, m.height)
 			m.searchInput = inp
@@ -530,7 +530,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewState = ViewSearchTab
 			return m, nil
 
-		case "w":
+		case "ctrl+w":
 			// Save current tab's command to config.yaml
 			if m.currentTab == SearchTabIndex {
 				if m.searchCommand == "" {
