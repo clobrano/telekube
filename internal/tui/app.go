@@ -816,11 +816,11 @@ func (m *Model) View() string {
 		}
 		b.WriteString(hint)
 	} else if m.search.IsFiltered() {
-		b.WriteString(wrapAtWidth("[Esc] clear filter  [/] modify filter  [d]escribe [L]ogs [D]elete [e]dit [x]exec  [w]save [+]new tab", m.width))
+		b.WriteString(wrapAtWidth("[Esc] clear filter  [/] modify filter  [d]escribe [L]ogs [D]elete [e]dit [x]exec  [+]new tab", m.width))
 	} else if m.currentTab == SearchTabIndex {
-		b.WriteString(wrapAtWidth("[Enter] enter command  [/]filter results  [r]efresh  [q]uit  [w]save as tab  [+]new tab", m.width))
+		b.WriteString(wrapAtWidth("[Enter] enter command  [/]filter results  [r]efresh  [q]uit  [+]new tab", m.width))
 	} else {
-		b.WriteString(wrapAtWidth("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [x]exec [R]estart  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [w]save [+]new tab", m.width))
+		b.WriteString(wrapAtWidth("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [x]exec [R]estart  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [+]new tab", m.width))
 	}
 
 	return b.String()
