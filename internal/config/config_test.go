@@ -39,6 +39,62 @@ func TestDefaultConfig(t *testing.T) {
 	}
 }
 
+func TestLoadConfigWithDeleteTab(t *testing.T) {
+	// Create a temporary config file with delete_tab keybinding
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.yaml")
+
+	configContent := `
+kubectl_bin: /usr/local/bin/kubectl
+pager: bat
+keybindings:
+  delete_tab: "-"
+tabs:
+  - name: "My Pods"
+    command: "get pods -n default"
+`
+
+	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write test config: %v", err)
+	}
+
+	cfg, err := LoadConfig(configPath)
+	if err != nil {
+		t.Fatalf("LoadConfig failed: %v", err)
+	}
+
+	if cfg.Keybindings.DeleteTab != "-" {
+		t.Errorf("expected delete_tab keybinding to be '-', got '%s'", cfg.Keybindings.DeleteTab)
+	}
+}
+
+func TestLoadConfigDefaultDeleteTab(t *testing.T) {
+	// Create a temporary config file WITHOUT delete_tab keybinding
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.yaml")
+
+	configContent := `
+kubectl_bin: /usr/local/bin/kubectl
+pager: bat
+tabs:
+  - name: "My Pods"
+    command: "get pods -n default"
+`
+
+	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		t.Fatalf("failed to write test config: %v", err)
+	}
+
+	cfg, err := LoadConfig(configPath)
+	if err != nil {
+		t.Fatalf("LoadConfig failed: %v", err)
+	}
+
+	if cfg.Keybindings.DeleteTab != "-" {
+		t.Errorf("expected default delete_tab keybinding to be '-', got '%s'", cfg.Keybindings.DeleteTab)
+	}
+}
+
 func TestLoadConfig(t *testing.T) {
 	// Create a temporary config file
 	tmpDir := t.TempDir()
@@ -277,5 +333,115 @@ func TestEnsureConfigExists(t *testing.T) {
 
 	if path2 != path {
 		t.Errorf("expected same path on second call, got '%s'", path2)
+	}
+}
+
+func TestSaveConfigRemovesTab(t *testing.T) {
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.yaml")
+
+	// Create initial config with 3 tabs
+	cfg := &Config{
+		KubectlBin: "kubectl",
+		Pager:      "less",
+		Tabs: []TabConfig{
+			{Name: "Pods", Command: "pods -A"},
+			{Name: "Deployments", Command: "deployments -A"},
+			{Name: "Services", Command: "services -A"},
+		},
+		Keybindings: DefaultConfig().Keybindings,
+	}
+
+	// Save it
+	if err := SaveConfig(cfg, configPath); err != nil {
+		t.Fatalf("SaveConfig failed: %v", err)
+	}
+
+	// Load it back and verify
+	loaded, err := LoadConfig(configPath)
+	if err != nil {
+		t.Fatalf("LoadConfig failed: %v", err)
+	}
+
+	if len(loaded.Tabs) != 3 {
+		t.Errorf("expected 3 tabs, got %d", len(loaded.Tabs))
+	}
+
+	// Remove a tab and save again
+	cfg.Tabs = cfg.Tabs[:len(cfg.Tabs)-1] // Remove last tab
+
+	if err := SaveConfig(cfg, configPath); err != nil {
+		t.Fatalf("SaveConfig after removal failed: %v", err)
+	}
+
+	// Load and verify tab was removed
+	loaded, err = LoadConfig(configPath)
+	if err != nil {
+		t.Fatalf("LoadConfig after removal failed: %v", err)
+	}
+
+	if len(loaded.Tabs) != 2 {
+		t.Errorf("expected 2 tabs after removal, got %d", len(loaded.Tabs))
+	}
+
+	if len(loaded.Tabs) > 0 && loaded.Tabs[len(loaded.Tabs)-1].Name == "Services" {
+		t.Error("Services tab should have been removed")
+	}
+}
+
+func TestSaveConfigWritesValidYAML(t *testing.T) {
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.yaml")
+
+	cfg := &Config{
+		KubectlBin: "kubectl",
+		Pager:      "less",
+		Tabs: []TabConfig{
+			{Name: "Pods", Command: "pods -A"},
+		},
+		Keybindings: DefaultConfig().Keybindings,
+	}
+
+	if err := SaveConfig(cfg, configPath); err != nil {
+		t.Fatalf("SaveConfig failed: %v", err)
+	}
+
+	// Verify file was written
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("failed to read written file: %v", err)
+	}
+
+	if len(data) == 0 {
+		t.Error("config file is empty")
+	}
+
+	// Verify YAML is valid by loading it
+	loaded, err := LoadConfig(configPath)
+	if err != nil {
+		t.Fatalf("YAML is not valid: %v", err)
+	}
+
+	if loaded.KubectlBin != "kubectl" {
+		t.Errorf("expected kubectl_bin to be 'kubectl', got '%s'", loaded.KubectlBin)
+	}
+}
+
+func TestSaveConfigFileWriteError(t *testing.T) {
+	// Use a non-existent directory that can't be created
+	configPath := "/root/cannot/write/here/config.yaml"
+
+	cfg := &Config{
+		KubectlBin: "kubectl",
+		Pager:      "less",
+		Tabs: []TabConfig{
+			{Name: "Pods", Command: "pods -A"},
+		},
+		Keybindings: DefaultConfig().Keybindings,
+	}
+
+	err := SaveConfig(cfg, configPath)
+	if err == nil {
+		t.Error("expected error for non-writable path, got nil")
 	}
 }

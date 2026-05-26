@@ -70,6 +70,7 @@ type Keybindings struct {
 	Down            string `yaml:"down"`
 	TabNext         string `yaml:"tab_next"`
 	TabPrev         string `yaml:"tab_prev"`
+	DeleteTab       string `yaml:"delete_tab"`
 }
 
 // LoadConfig reads and parses a YAML configuration file from the given path

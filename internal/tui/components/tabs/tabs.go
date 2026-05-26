@@ -113,6 +113,27 @@ func (m *Model) AddTab(name string) {
 	m.tabs = append(m.tabs, name)
 }
 
+// RemoveTab removes a tab at the given index, preventing removal of Search tab (index 0)
+func (m *Model) RemoveTab(index int) {
+	// Prevent removal of Search tab (index 0)
+	if index == 0 {
+		return
+	}
+
+	// Check bounds
+	if index < 0 || index >= len(m.tabs) {
+		return
+	}
+
+	// Remove the tab
+	m.tabs = append(m.tabs[:index], m.tabs[index+1:]...)
+
+	// Adjust active index if needed
+	if m.activeIndex >= len(m.tabs) && len(m.tabs) > 0 {
+		m.activeIndex = len(m.tabs) - 1
+	}
+}
+
 // View renders the tab bar
 func (m *Model) View() string {
 	if len(m.tabs) == 0 {

@@ -17,6 +17,7 @@ type KeyMap struct {
 	Down            key.Binding
 	TabNext         key.Binding
 	TabPrev         key.Binding
+	DeleteTab       key.Binding
 	Describe key.Binding
 	Logs     key.Binding
 	Delete   key.Binding
@@ -74,6 +75,10 @@ func NewKeyMap(cfg config.Keybindings) *KeyMap {
 		TabPrev: key.NewBinding(
 			key.WithKeys(cfg.TabPrev, "left", "h"),
 			key.WithHelp("←/h/shift+tab", "prev tab"),
+		),
+		DeleteTab: key.NewBinding(
+			key.WithKeys(cfg.DeleteTab),
+			key.WithHelp(cfg.DeleteTab, "delete tab"),
 		),
 		Describe: key.NewBinding(
 			key.WithKeys(cfg.Describe),

@@ -296,6 +296,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.confirm, _ = m.confirm.Update(msg)
 		switch m.confirm.Result() {
 		case dialog.ConfirmYes:
+			if m.pendingAction == "delete-tab" {
+				m.viewState = ViewList
+				m.pendingAction = ""
+				return m, m.deleteCurrentTab()
+			}
 			m.viewState = ViewList
 			return m, m.startLoading(m.executeDelete())
 		case dialog.ConfirmNo:
@@ -528,6 +533,22 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			inp.SetSize(m.width, m.height)
 			m.searchInput = inp
 			m.viewState = ViewSearchTab
+			return m, nil
+
+		case m.config.Keybindings.DeleteTab:
+			// Delete the current tab
+			if m.currentTab == SearchTabIndex {
+				// Cannot delete the Search tab
+				return m, nil
+			}
+
+			// Show confirmation dialog
+			tabName := m.tabs.ActiveName()
+			message := fmt.Sprintf("Delete tab %q?", tabName)
+			m.confirm = dialog.NewConfirm("Confirm Delete", message)
+			m.confirm.SetSize(m.width, m.height)
+			m.pendingAction = "delete-tab"
+			m.viewState = ViewConfirm
 			return m, nil
 
 		case "ctrl+w":
@@ -804,6 +825,7 @@ func (m *Model) View() string {
 
 	// Footer/help
 	b.WriteString("\n\n")
+	deleteTabKey := m.config.Keybindings.DeleteTab
 	if m.loading {
 		b.WriteString(m.spinner.View() + " Loading...")
 	} else if m.search.IsActive() {
@@ -816,11 +838,11 @@ func (m *Model) View() string {
 		}
 		b.WriteString(hint)
 	} else if m.search.IsFiltered() {
-		b.WriteString(wrapAtWidth("[Esc] clear filter  [/] modify filter  [d]escribe [L]ogs [D]elete [e]dit [x]exec  [+]new tab", m.width))
+		b.WriteString(wrapAtWidth(fmt.Sprintf("[Esc] clear filter  [/] modify filter  [d]escribe [L]ogs [D]elete [e]dit [x]exec  [+]new tab [%s]delete tab", deleteTabKey), m.width))
 	} else if m.currentTab == SearchTabIndex {
-		b.WriteString(wrapAtWidth("[Enter] enter command  [/]filter results  [r]efresh  [q]uit  [+]new tab", m.width))
+		b.WriteString(wrapAtWidth(fmt.Sprintf("[Enter] enter command  [/]filter results  [r]efresh  [q]uit  [+]new tab [%s]delete tab", deleteTabKey), m.width))
 	} else {
-		b.WriteString(wrapAtWidth("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [x]exec [R]estart  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [+]new tab", m.width))
+		b.WriteString(wrapAtWidth(fmt.Sprintf("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [x]exec [R]estart  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [+]new tab [%s]delete tab", deleteTabKey), m.width))
 	}
 
 	return b.String()
@@ -1681,5 +1703,36 @@ func (m *Model) showNamespaceSelector() tea.Cmd {
 		m.viewState = ViewSelector
 
 		return nil
+	}
+}
+
+// deleteCurrentTab removes the current tab from the tab bar and config
+func (m *Model) deleteCurrentTab() tea.Cmd {
+	return func() tea.Msg {
+		if m.currentTab == SearchTabIndex {
+			return nil
+		}
+
+		// Get the config tab index (tabs bar index 0 is Search, so subtract 1 for config)
+		configTabIndex := m.currentTab - 1
+
+		// Remove from config
+		if configTabIndex >= 0 && configTabIndex < len(m.config.Tabs) {
+			m.config.Tabs = append(m.config.Tabs[:configTabIndex], m.config.Tabs[configTabIndex+1:]...)
+		}
+
+		// Remove from tab bar
+		m.tabs.RemoveTab(m.currentTab)
+
+		// Update current tab to active tab from tabs model
+		m.currentTab = m.tabs.Active()
+
+		// Save config to disk
+		if err := config.SaveConfig(m.config, m.configPath); err != nil {
+			return ErrorMsg{Err: fmt.Errorf("failed to save config after deleting tab: %w", err)}
+		}
+
+		// Reload resources for the new active tab
+		return m.loadResources()
 	}
 }

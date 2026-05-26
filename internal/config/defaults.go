@@ -33,6 +33,7 @@ func DefaultConfig() *Config {
 			Down:            "down",
 			TabNext:         "tab",
 			TabPrev:         "shift+tab",
+			DeleteTab:       "-",
 		},
 		Tabs: []TabConfig{
 			{

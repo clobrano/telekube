@@ -159,3 +159,85 @@ func TestString(t *testing.T) {
 		t.Errorf("String() = %q, should contain 'active=1'", s)
 	}
 }
+
+func TestRemoveTabMiddleIndex(t *testing.T) {
+	// Removing middle tab should keep active index consistent if not removed
+	tabs := New([]string{"Search", "Pods", "Deployments", "Services"}, 1)
+
+	tabs.RemoveTab(2) // Remove "Deployments"
+
+	if tabs.Count() != 3 {
+		t.Errorf("Count() after removing tab = %d, want 3", tabs.Count())
+	}
+
+	// Active should still be 1 (Pods) since we didn't remove it
+	if tabs.Active() != 1 {
+		t.Errorf("Active() after removing middle tab = %d, want 1", tabs.Active())
+	}
+
+	if tabs.ActiveName() != "Pods" {
+		t.Errorf("ActiveName() = %q, want %q", tabs.ActiveName(), "Pods")
+	}
+}
+
+func TestRemoveTabLastIndex(t *testing.T) {
+	// Removing the last tab should set active to previous tab
+	tabs := New([]string{"Search", "Pods", "Deployments", "Services"}, 3)
+
+	tabs.RemoveTab(3) // Remove "Services"
+
+	if tabs.Count() != 3 {
+		t.Errorf("Count() after removing last tab = %d, want 3", tabs.Count())
+	}
+
+	// Active should be set to previous tab (index 2)
+	if tabs.Active() != 2 {
+		t.Errorf("Active() after removing last tab = %d, want 2", tabs.Active())
+	}
+
+	if tabs.ActiveName() != "Deployments" {
+		t.Errorf("ActiveName() = %q, want %q", tabs.ActiveName(), "Deployments")
+	}
+}
+
+func TestRemoveTabSearchTabBlocked(t *testing.T) {
+	// Removing Search tab (index 0) should be prevented
+	tabs := New([]string{"Search", "Pods", "Deployments"}, 0)
+
+	tabs.RemoveTab(0) // Try to remove "Search"
+
+	if tabs.Count() != 3 {
+		t.Errorf("Count() after trying to remove Search tab = %d, want 3", tabs.Count())
+	}
+
+	if tabs.ActiveName() != "Search" {
+		t.Errorf("ActiveName() = %q, want %q", tabs.ActiveName(), "Search")
+	}
+}
+
+func TestRemoveTabEmptyList(t *testing.T) {
+	// Removing from empty list should not panic
+	tabs := New([]string{}, 0)
+
+	tabs.RemoveTab(0) // Should not panic
+
+	if tabs.Count() != 0 {
+		t.Errorf("Count() of empty tabs = %d, want 0", tabs.Count())
+	}
+}
+
+func TestRemoveTabUpdateActiveAfterRemoval(t *testing.T) {
+	// If active tab is removed, active should shift to previous
+	tabs := New([]string{"Search", "Pods", "Deployments"}, 2)
+
+	tabs.RemoveTab(2) // Remove active tab "Deployments"
+
+	if tabs.Count() != 2 {
+		t.Errorf("Count() after removing active tab = %d, want 2", tabs.Count())
+	}
+
+	// Active should shift to previous (index 1)
+	if tabs.Active() != 1 {
+		t.Errorf("Active() after removing active tab = %d, want 1", tabs.Active())
+	}
+}
