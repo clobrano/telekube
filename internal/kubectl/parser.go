@@ -42,18 +42,24 @@ func ParseTableOutput(output string) *TableData {
 }
 
 // parseColumnBoundaries determines column start positions from header line
-// Columns are separated by 2+ spaces or are at fixed positions based on header spacing
+// Columns are separated by 2+ spaces; single spaces are part of a multi-word column name
 func parseColumnBoundaries(headerLine string) []int {
 	var columns []int
+	spaceRun := 0
 	inWord := false
 
 	for i, ch := range headerLine {
 		if ch != ' ' {
 			if !inWord {
-				columns = append(columns, i)
+				// First character ever, or following a gap of 2+ spaces = new column
+				if len(columns) == 0 || spaceRun >= 2 {
+					columns = append(columns, i)
+				}
 				inWord = true
 			}
+			spaceRun = 0
 		} else {
+			spaceRun++
 			inWord = false
 		}
 	}

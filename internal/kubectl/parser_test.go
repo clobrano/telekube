@@ -155,6 +155,36 @@ func TestGetColumn(t *testing.T) {
 	}
 }
 
+func TestParseTableOutputMultiWordHeader(t *testing.T) {
+	// "RELEASE STATUS" is a single column with a space in its name (kubectl CRD output).
+	// The parser must treat single-space gaps as part of the header word, not column boundaries.
+	input := "NAME                                 SNAPSHOT              RELEASEPLAN        RELEASE STATUS   AGE\n" +
+		"release-foo                          snapshot-foo          releaseplan-foo    Succeeded        3d\n" +
+		"release-bar                          snapshot-bar          releaseplan-bar    Failed           1d"
+
+	result := ParseTableOutput(input)
+
+	wantHeaders := []string{"NAME", "SNAPSHOT", "RELEASEPLAN", "RELEASE STATUS", "AGE"}
+	if !reflect.DeepEqual(result.Headers, wantHeaders) {
+		t.Errorf("Headers = %v, want %v", result.Headers, wantHeaders)
+	}
+
+	if len(result.Rows) != 2 {
+		t.Fatalf("Rows count = %d, want 2", len(result.Rows))
+	}
+
+	statusIdx := result.GetColumnIndex("RELEASE STATUS")
+	if statusIdx < 0 {
+		t.Fatal("column 'RELEASE STATUS' not found")
+	}
+	if result.Rows[0][statusIdx] != "Succeeded" {
+		t.Errorf("Row 0 RELEASE STATUS = %q, want %q", result.Rows[0][statusIdx], "Succeeded")
+	}
+	if result.Rows[1][statusIdx] != "Failed" {
+		t.Errorf("Row 1 RELEASE STATUS = %q, want %q", result.Rows[1][statusIdx], "Failed")
+	}
+}
+
 func TestKubectlError(t *testing.T) {
 	tests := []struct {
 		name     string
