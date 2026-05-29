@@ -22,7 +22,7 @@ type KeyMap struct {
 	Logs     key.Binding
 	Delete   key.Binding
 	Edit            key.Binding
-	Exec            key.Binding
+	Terminal        key.Binding
 	PortForward     key.Binding
 	Scale           key.Binding
 	RolloutRestart  key.Binding
@@ -96,9 +96,9 @@ func NewKeyMap(cfg config.Keybindings) *KeyMap {
 			key.WithKeys(cfg.Edit),
 			key.WithHelp(cfg.Edit, "edit"),
 		),
-		Exec: key.NewBinding(
-			key.WithKeys(cfg.Exec),
-			key.WithHelp(cfg.Exec, "exec"),
+		Terminal: key.NewBinding(
+			key.WithKeys(cfg.Terminal),
+			key.WithHelp(cfg.Terminal, "terminal"),
 		),
 		PortForward: key.NewBinding(
 			key.WithKeys(cfg.PortForward),
@@ -151,7 +151,7 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 		{k.Up, k.Down, k.Enter, k.Escape},
 		{k.TabNext, k.TabPrev, k.Search, k.Refresh},
 		{k.Describe, k.Logs, k.Delete, k.Edit},
-		{k.Exec, k.PortForward, k.Scale, k.RolloutRestart},
+		{k.Terminal, k.PortForward, k.Scale, k.RolloutRestart},
 		{k.YAMLView, k.JSONView, k.SwitchNamespace, k.SwitchContext},
 		{k.Help, k.Quit},
 	}

@@ -55,7 +55,7 @@ type Keybindings struct {
 	Logs   string `yaml:"logs"`
 	Delete string `yaml:"delete"`
 	Edit            string `yaml:"edit"`
-	Exec            string `yaml:"exec"`
+	Terminal        string `yaml:"terminal"`
 	PortForward     string `yaml:"port_forward"`
 	Scale           string `yaml:"scale"`
 	RolloutRestart  string `yaml:"rollout_restart"`

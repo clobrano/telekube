@@ -141,7 +141,7 @@ Press `/` to activate fuzzy filter mode. The filter uses fuzzy matching to filte
 | `L` | Follow logs (pods only) |
 | `D` | Delete resource (with confirmation) |
 | `e` | Edit resource |
-| `x` | Exec into pod |
+| `T` | Open system terminal |
 | `R` | Rollout restart (deployments) |
 
 ### Selection
@@ -206,7 +206,7 @@ keybindings:
   logs_follow: "L"
   delete: "D"
   edit: "e"
-  exec: "x"
+  terminal: "T"
   yaml_view: "Y"
   json_view: "J"
   search: "/"
