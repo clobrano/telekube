@@ -34,6 +34,7 @@ const (
 	ViewInput
 	ViewHelp
 	ViewSearchTab // Search tab command input mode
+	ViewCopy      // Copy column data dialog
 )
 
 // SearchTabIndex is the index of the special Search tab (always first)
@@ -148,9 +149,10 @@ type Model struct {
 	list     *list.Model
 	search   *search.Model
 	detail   *detail.Model
-	confirm  *dialog.ConfirmModel
-	selector *dialog.SelectorModel
-	input    *dialog.InputModel
+	confirm       *dialog.ConfirmModel
+	selector      *dialog.SelectorModel
+	input         *dialog.InputModel
+	copySelector  *dialog.MultiSelectorModel
 
 	// Pending action state
 	pendingAction  string
@@ -322,6 +324,22 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case dialog.SelectorCancelled:
 			m.viewState = ViewList
 			m.pendingAction = ""
+		}
+		return m, nil
+	}
+
+	// Handle copy-data dialog state
+	if m.viewState == ViewCopy && m.copySelector != nil {
+		m.copySelector, _ = m.copySelector.Update(msg)
+		switch m.copySelector.Result() {
+		case dialog.MultiSelectorConfirmed:
+			m.viewState = ViewList
+			values := m.copySelector.SelectedValues()
+			if len(values) > 0 {
+				return m, m.copyToClipboard(strings.Join(values, " "))
+			}
+		case dialog.MultiSelectorCancelled:
+			m.viewState = ViewList
 		}
 		return m, nil
 	}
@@ -633,6 +651,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Rollout restart
 			return m, m.startLoading(m.rolloutRestart())
 		case "c":
+			// Open copy-data column selector
+			m.openCopySelector()
+			return m, nil
+		case "C":
 			// Switch context
 			return m, m.startLoading(m.showContextSelector())
 		case "n":
@@ -785,6 +807,11 @@ func (m *Model) View() string {
 	// Search tab input mode
 	if m.viewState == ViewSearchTab {
 		return m.searchInput.View()
+	}
+
+	// Copy data dialog is a full-screen overlay
+	if m.viewState == ViewCopy && m.copySelector != nil {
+		return m.copySelector.View()
 	}
 
 	var b strings.Builder
@@ -1338,6 +1365,68 @@ func (m *Model) applyTabSort(data *kubectl.TableData) {
 
 // openSortSelector builds sort options from the current tab's headers and opens
 // the selector dialog.
+func (m *Model) openCopySelector() {
+	row := m.list.SelectedItem()
+	headers := m.list.Headers()
+	if len(row) == 0 || len(headers) == 0 {
+		return
+	}
+
+	var items []dialog.MultiSelectorItem
+
+	// One item per column
+	for i, h := range headers {
+		if i < len(row) {
+			items = append(items, dialog.MultiSelectorItem{
+				Label: fmt.Sprintf("%-12s  %s", h, row[i]),
+				Value: row[i],
+			})
+		}
+	}
+
+	// Special combined NAME --namespace NAMESPACE option
+	nameIdx, nsIdx := -1, -1
+	for i, h := range headers {
+		switch strings.ToUpper(h) {
+		case "NAME":
+			nameIdx = i
+		case "NAMESPACE":
+			nsIdx = i
+		}
+	}
+	if nameIdx >= 0 && nsIdx >= 0 && nameIdx < len(row) && nsIdx < len(row) {
+		combined := fmt.Sprintf("%s --namespace %s", row[nameIdx], row[nsIdx])
+		items = append(items, dialog.MultiSelectorItem{
+			Label: fmt.Sprintf("%-12s  %s", "NAME+NS", combined),
+			Value: combined,
+		})
+	}
+
+	sel := dialog.NewMultiSelector("Copy column data", items)
+	sel.SetSize(m.width, m.height)
+	m.copySelector = sel
+	m.viewState = ViewCopy
+}
+
+func (m *Model) copyToClipboard(text string) tea.Cmd {
+	return func() tea.Msg {
+		// Try xclip first, then xsel, then pbcopy (macOS)
+		commands := [][]string{
+			{"xclip", "-selection", "clipboard"},
+			{"xsel", "--clipboard", "--input"},
+			{"pbcopy"},
+		}
+		for _, args := range commands {
+			cmd := exec.Command(args[0], args[1:]...) //nolint:gosec
+			cmd.Stdin = strings.NewReader(text)
+			if err := cmd.Run(); err == nil {
+				return nil
+			}
+		}
+		return nil
+	}
+}
+
 func (m *Model) openSortSelector() {
 	if m.resources == nil || len(m.resources.Headers) == 0 {
 		return
