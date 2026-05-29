@@ -63,6 +63,7 @@ type Keybindings struct {
 	JSONView        string `yaml:"json_view"`
 	SwitchNamespace string `yaml:"switch_namespace"`
 	SwitchContext   string `yaml:"switch_context"`
+	CopyData        string `yaml:"copy_data"`
 	MultiSelect     string `yaml:"multi_select"`
 	Enter           string `yaml:"enter"`
 	Escape          string `yaml:"escape"`

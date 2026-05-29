@@ -30,6 +30,7 @@ type KeyMap struct {
 	JSONView        key.Binding
 	SwitchNamespace key.Binding
 	SwitchContext   key.Binding
+	CopyData        key.Binding
 	MultiSelect     key.Binding
 }
 
@@ -128,6 +129,10 @@ func NewKeyMap(cfg config.Keybindings) *KeyMap {
 			key.WithKeys(cfg.SwitchContext),
 			key.WithHelp(cfg.SwitchContext, "context"),
 		),
+		CopyData: key.NewBinding(
+			key.WithKeys(cfg.CopyData),
+			key.WithHelp(cfg.CopyData, "copy"),
+		),
 		MultiSelect: key.NewBinding(
 			key.WithKeys(cfg.MultiSelect),
 			key.WithHelp("space", "select"),
@@ -153,6 +158,7 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 		{k.Describe, k.Logs, k.Delete, k.Edit},
 		{k.Terminal, k.PortForward, k.Scale, k.RolloutRestart},
 		{k.YAMLView, k.JSONView, k.SwitchNamespace, k.SwitchContext},
+		{k.CopyData},
 		{k.Help, k.Quit},
 	}
 }
