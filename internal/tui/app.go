@@ -1230,7 +1230,8 @@ func makeKubectlEditCmd(kubectlBin, resource, name, namespace string) *exec.Cmd 
 	return cmd
 }
 
-// execIntoPod starts an exec session in the pod
+// execIntoPod opens a floating system terminal window with kubectl exec.
+// The TUI stays alive while the user types in the new window.
 func (m *Model) execIntoPod() tea.Cmd {
 	names, namespace := m.getSelectedResourceInfo()
 	if len(names) == 0 {
@@ -1243,13 +1244,9 @@ func (m *Model) execIntoPod() tea.Cmd {
 		return nil
 	}
 
-	// Return a command that suspends the TUI
-	return tea.ExecProcess(
-		makeKubectlExecCmd(m.kubectl.BinaryPath(), names[0], namespace, ""),
-		func(err error) tea.Msg {
-			return nil // Don't show error, just return to TUI
-		},
-	)
+	cmd := makeKubectlExecCmd(m.kubectl.BinaryPath(), names[0], namespace, "")
+	launchInNewShell(cmd.Args)
+	return nil
 }
 
 // makeKubectlExecCmd creates an exec.Cmd for kubectl exec
