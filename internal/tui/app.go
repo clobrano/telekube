@@ -647,9 +647,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case m.config.Keybindings.Terminal:
 			// Open system terminal
 			return m, m.openTerminal()
-		case "R":
-			// Rollout restart
-			return m, m.startLoading(m.rolloutRestart())
 		case "c":
 			// Open copy-data column selector
 			m.openCopySelector()
@@ -869,7 +866,7 @@ func (m *Model) View() string {
 	} else if m.currentTab == SearchTabIndex {
 		b.WriteString(wrapAtWidth(fmt.Sprintf("[Enter] enter command  [/]filter results  [r]efresh  [q]uit  [+]new tab [%s]delete tab", deleteTabKey), m.width))
 	} else {
-		b.WriteString(wrapAtWidth(fmt.Sprintf("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [T]erminal [R]estart  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [+]new tab [%s]delete tab", deleteTabKey), m.width))
+		b.WriteString(wrapAtWidth(fmt.Sprintf("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [T]erminal  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [+]new tab [%s]delete tab", deleteTabKey), m.width))
 	}
 
 	return b.String()

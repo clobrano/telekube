@@ -58,7 +58,6 @@ type Keybindings struct {
 	Terminal        string `yaml:"terminal"`
 	PortForward     string `yaml:"port_forward"`
 	Scale           string `yaml:"scale"`
-	RolloutRestart  string `yaml:"rollout_restart"`
 	YAMLView        string `yaml:"yaml_view"`
 	JSONView        string `yaml:"json_view"`
 	SwitchNamespace string `yaml:"switch_namespace"`
