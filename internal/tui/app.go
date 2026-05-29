@@ -626,9 +626,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "e":
 			// Edit resource
 			return m, m.editResource()
-		case "x":
-			// Exec into pod
-			return m, m.execIntoPod()
+		case m.config.Keybindings.Terminal:
+			// Open system terminal
+			return m, m.openTerminal()
 		case "R":
 			// Rollout restart
 			return m, m.startLoading(m.rolloutRestart())
@@ -838,11 +838,11 @@ func (m *Model) View() string {
 		}
 		b.WriteString(hint)
 	} else if m.search.IsFiltered() {
-		b.WriteString(wrapAtWidth(fmt.Sprintf("[Esc] clear filter  [/] modify filter  [d]escribe [L]ogs [D]elete [e]dit [x]exec  [+]new tab [%s]delete tab", deleteTabKey), m.width))
+		b.WriteString(wrapAtWidth(fmt.Sprintf("[Esc] clear filter  [/] modify filter  [d]escribe [L]ogs [D]elete [e]dit [T]erminal  [+]new tab [%s]delete tab", deleteTabKey), m.width))
 	} else if m.currentTab == SearchTabIndex {
 		b.WriteString(wrapAtWidth(fmt.Sprintf("[Enter] enter command  [/]filter results  [r]efresh  [q]uit  [+]new tab [%s]delete tab", deleteTabKey), m.width))
 	} else {
-		b.WriteString(wrapAtWidth(fmt.Sprintf("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [x]exec [R]estart  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [+]new tab [%s]delete tab", deleteTabKey), m.width))
+		b.WriteString(wrapAtWidth(fmt.Sprintf("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [T]erminal [R]estart  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [+]new tab [%s]delete tab", deleteTabKey), m.width))
 	}
 
 	return b.String()
@@ -1230,43 +1230,11 @@ func makeKubectlEditCmd(kubectlBin, resource, name, namespace string) *exec.Cmd 
 	return cmd
 }
 
-// execIntoPod starts an exec session in the pod
-func (m *Model) execIntoPod() tea.Cmd {
-	names, namespace := m.getSelectedResourceInfo()
-	if len(names) == 0 {
-		return nil
-	}
-
-	resourceType := m.getCurrentResourceType()
-	// Exec only works for pods
-	if !isPodResource(resourceType) {
-		return nil
-	}
-
-	// Return a command that suspends the TUI
-	return tea.ExecProcess(
-		makeKubectlExecCmd(m.kubectl.BinaryPath(), names[0], namespace, ""),
-		func(err error) tea.Msg {
-			return nil // Don't show error, just return to TUI
-		},
-	)
-}
-
-// makeKubectlExecCmd creates an exec.Cmd for kubectl exec
-func makeKubectlExecCmd(kubectlBin, podName, namespace, container string) *exec.Cmd {
-	args := []string{"exec", "-it", podName}
-	if namespace != "" {
-		args = append(args, "-n", namespace)
-	}
-	if container != "" {
-		args = append(args, "-c", container)
-	}
-	args = append(args, "--", "/bin/sh")
-	cmd := exec.Command(kubectlBin, args...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd
+// openTerminal opens the system's default terminal emulator as a floating window.
+// The TUI stays alive; the user gets a plain interactive shell to type any command.
+func (m *Model) openTerminal() tea.Cmd {
+	launchTerminal()
+	return nil
 }
 
 // launchInNewShell opens a command in a new terminal window.
@@ -1285,6 +1253,33 @@ func launchInNewShell(args []string) {
 		{"xfce4-terminal", []string{"-e", shellCmd}},
 		{"xterm", []string{"-e", shellCmd}},
 		{"open", []string{"-a", "Terminal", "--args", shellCmd}}, // macOS
+	}
+
+	for _, t := range terminals {
+		if path, err := exec.LookPath(t.bin); err == nil {
+			cmd := exec.Command(path, t.args...)
+			cmd.Stdout = nil
+			cmd.Stderr = nil
+			cmd.Stdin = nil
+			_ = cmd.Start()
+			return
+		}
+	}
+}
+
+// launchTerminal opens the system's default terminal emulator with a plain
+// interactive shell — no pre-loaded command. The caller's TUI is unaffected.
+func launchTerminal() {
+	terminals := []struct {
+		bin  string
+		args []string
+	}{
+		{"x-terminal-emulator", nil},
+		{"gnome-terminal", nil},
+		{"konsole", nil},
+		{"xfce4-terminal", nil},
+		{"xterm", nil},
+		{"open", []string{"-a", "Terminal"}}, // macOS
 	}
 
 	for _, t := range terminals {
@@ -1467,9 +1462,6 @@ func (m *Model) handleSelectorResult() tea.Cmd {
 		container := strings.TrimPrefix(selected, "log ")
 		container = strings.TrimSuffix(container, " --follow")
 		return m.viewLogsWithContainer(container, follow)
-	case "container-exec":
-		// Use selected container for exec
-		return m.execWithContainer(selected)
 	case "context":
 		// Switch context
 		return m.switchContext(selected)
@@ -1522,27 +1514,6 @@ func (m *Model) viewLogsWithContainer(container string, follow bool) tea.Cmd {
 			Content:   content,
 		}
 	}
-}
-
-// execWithContainer starts exec with a specific container
-func (m *Model) execWithContainer(container string) tea.Cmd {
-	if len(m.pendingNames) == 0 {
-		return nil
-	}
-
-	podName := m.pendingNames[0]
-	namespace := m.pendingNs
-	kubectlBin := m.kubectl.BinaryPath()
-
-	m.pendingNames = nil
-	m.pendingNs = ""
-
-	return tea.ExecProcess(
-		makeKubectlExecCmd(kubectlBin, podName, namespace, container),
-		func(err error) tea.Msg {
-			return nil
-		},
-	)
 }
 
 // switchContext switches to a different kubectl context

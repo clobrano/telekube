@@ -64,13 +64,6 @@ type LogsFollowMsg struct {
 	NewShell   bool // if true, open in a new terminal shell instead of suspending the TUI
 }
 
-// ExecRequestMsg is sent to request exec into a container
-type ExecRequestMsg struct {
-	PodName   string
-	Namespace string
-	Container string
-}
-
 // TabAddedMsg is sent when a new tab has been validated and saved to config
 type TabAddedMsg struct {
 	Name    string

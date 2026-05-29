@@ -18,7 +18,7 @@ func DefaultConfig() *Config {
 			Logs:   "L",
 			Delete: "D",
 			Edit:            "e",
-			Exec:            "x",
+			Terminal:        "T",
 			PortForward:     "p",
 			Scale:           "s",
 			RolloutRestart:  "R",
