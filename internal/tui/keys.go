@@ -25,7 +25,6 @@ type KeyMap struct {
 	Terminal        key.Binding
 	PortForward     key.Binding
 	Scale           key.Binding
-	RolloutRestart  key.Binding
 	YAMLView        key.Binding
 	JSONView        key.Binding
 	SwitchNamespace key.Binding
@@ -109,10 +108,6 @@ func NewKeyMap(cfg config.Keybindings) *KeyMap {
 			key.WithKeys(cfg.Scale),
 			key.WithHelp(cfg.Scale, "scale"),
 		),
-		RolloutRestart: key.NewBinding(
-			key.WithKeys(cfg.RolloutRestart),
-			key.WithHelp(cfg.RolloutRestart, "rollout restart"),
-		),
 		YAMLView: key.NewBinding(
 			key.WithKeys(cfg.YAMLView),
 			key.WithHelp(cfg.YAMLView, "yaml"),
@@ -156,7 +151,7 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 		{k.Up, k.Down, k.Enter, k.Escape},
 		{k.TabNext, k.TabPrev, k.Search, k.Refresh},
 		{k.Describe, k.Logs, k.Delete, k.Edit},
-		{k.Terminal, k.PortForward, k.Scale, k.RolloutRestart},
+		{k.Terminal, k.PortForward, k.Scale},
 		{k.YAMLView, k.JSONView, k.SwitchNamespace, k.SwitchContext},
 		{k.CopyData},
 		{k.Help, k.Quit},

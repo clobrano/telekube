@@ -647,9 +647,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case m.config.Keybindings.Terminal:
 			// Open system terminal
 			return m, m.openTerminal()
-		case "R":
-			// Rollout restart
-			return m, m.startLoading(m.rolloutRestart())
 		case "c":
 			// Open copy-data column selector
 			m.openCopySelector()

@@ -21,7 +21,6 @@ func DefaultConfig() *Config {
 			Terminal:        "T",
 			PortForward:     "p",
 			Scale:           "s",
-			RolloutRestart:  "R",
 			YAMLView:        "Y",
 			JSONView:        "J",
 			SwitchNamespace: "n",
