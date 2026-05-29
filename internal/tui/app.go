@@ -1230,22 +1230,10 @@ func makeKubectlEditCmd(kubectlBin, resource, name, namespace string) *exec.Cmd 
 	return cmd
 }
 
-// execIntoPod opens a floating system terminal window with kubectl exec.
-// The TUI stays alive while the user types in the new window.
+// execIntoPod opens the system's default terminal emulator as a floating window.
+// The TUI stays alive; the user gets a plain interactive shell to type any command.
 func (m *Model) execIntoPod() tea.Cmd {
-	names, namespace := m.getSelectedResourceInfo()
-	if len(names) == 0 {
-		return nil
-	}
-
-	resourceType := m.getCurrentResourceType()
-	// Exec only works for pods
-	if !isPodResource(resourceType) {
-		return nil
-	}
-
-	cmd := makeKubectlExecCmd(m.kubectl.BinaryPath(), names[0], namespace, "")
-	launchInNewShell(cmd.Args)
+	launchTerminal()
 	return nil
 }
 
@@ -1282,6 +1270,33 @@ func launchInNewShell(args []string) {
 		{"xfce4-terminal", []string{"-e", shellCmd}},
 		{"xterm", []string{"-e", shellCmd}},
 		{"open", []string{"-a", "Terminal", "--args", shellCmd}}, // macOS
+	}
+
+	for _, t := range terminals {
+		if path, err := exec.LookPath(t.bin); err == nil {
+			cmd := exec.Command(path, t.args...)
+			cmd.Stdout = nil
+			cmd.Stderr = nil
+			cmd.Stdin = nil
+			_ = cmd.Start()
+			return
+		}
+	}
+}
+
+// launchTerminal opens the system's default terminal emulator with a plain
+// interactive shell — no pre-loaded command. The caller's TUI is unaffected.
+func launchTerminal() {
+	terminals := []struct {
+		bin  string
+		args []string
+	}{
+		{"x-terminal-emulator", nil},
+		{"gnome-terminal", nil},
+		{"konsole", nil},
+		{"xfce4-terminal", nil},
+		{"xterm", nil},
+		{"open", []string{"-a", "Terminal"}}, // macOS
 	}
 
 	for _, t := range terminals {
