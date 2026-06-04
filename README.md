@@ -5,12 +5,12 @@ A terminal UI for exploring and managing Kubernetes clusters. Browse resources, 
 ## Features
 
 - **Multi-tab resource browsing** - View Pods, Deployments, Services, and other resources in configurable tabs
-- **Search tab** - Execute any kubectl command interactively from the first tab
-- **Command-based tabs** - Configure tabs with raw kubectl commands for maximum flexibility
+- **Search tab** - Execute kubectl GET commands interactively from the first tab
+- **Command-based tabs** - Configure tabs with any `kubectl get` command — filter by namespace, labels, status, or any other criteria
 - **Runtime config editing** - Add new tabs or save commands to `config.yaml` without leaving the TUI
 - **Fuzzy search** - Filter resources in real-time with intelligent matching
-- **Multiple output formats** - View resources as table, YAML, or JSON
-- **Resource actions** - Describe, logs, delete, edit, exec, port-forward, scale, and rollout restart
+- **Multiple output formats** - View resources as table or YAML
+- **Resource actions** - Describe, edit, delete resources; view logs
 - **Context & namespace switching** - Quickly switch between clusters and namespaces
 - **Multi-select** - Select multiple resources for bulk operations
 - **Fully configurable** - Customize keybindings, tabs, and commands via YAML
@@ -42,9 +42,49 @@ telekube
 
 On first run, a default configuration file is created at `~/.config/telekube/config.yaml`.
 
+## Visual Tour
+
+### Initial Views
+
+When you start Telekube, you'll see a list of resources organized in tabs. Here are the main views:
+
+**Pods view** - Browse all pods across namespaces:
+![Pods view](assets/01%20first%20start%20Pods%20view.png)
+
+**Deployments view** - Monitor your deployments:
+![Deployments view](assets/02%20first%20start%20Deployments%20view.png)
+
+### Creating Custom Tabs
+
+Add a new tab to monitor specific resources. First, enter the tab name:
+![Create tab - name](assets/03%20Create%20new%20tab%20view%20-%20tab%20name.png)
+
+Then enter your kubectl command:
+![Create tab - command](assets/04%20Create%20new%20tab%20view%20-%20Command.png)
+
+The new tab appears and starts populating with results:
+![New tab empty](assets/05%20New%20Tab%20view%20-%20empty.png)
+![New tab populating](assets/06%20New%20Tab%20view%20-%20populating.png)
+
+> **💡 Tip:** Your new tabs are automatically saved to `~/.config/telekube/config.yaml` and will persist across sessions. See [Runtime Config Editing](#runtime-config-editing) for more details.
+
+### Viewing Details
+
+Access detailed information about your resources:
+
+**Log view** - Stream and inspect pod logs:
+![Logs part 1](assets/07%20Log%20view%201⁄2.png)
+![Logs part 2](assets/08%20Log%20view%202⁄2.png)
+
+**Description view** - Full resource details:
+![Description view](assets/09%20Description%20view.png)
+
+**Filter resources** - Use fuzzy search to find what you need:
+![Filter view](assets/10%20Filter%20resource%20view.png)
+
 ## Search Tab
 
-The first tab is always the **Search** tab, which lets you run any kubectl command interactively.
+The first tab is always the **Search** tab, which lets you run kubectl GET commands interactively.
 
 1. Navigate to the Search tab (press `1` or use `Tab`/`Shift+Tab`)
 2. Press `Enter` to open the command input
@@ -208,7 +248,6 @@ keybindings:
   edit: "e"
   terminal: "T"
   yaml_view: "Y"
-  json_view: "J"
   search: "/"
   refresh: "r"
   context: "c"
@@ -216,21 +255,20 @@ keybindings:
   select: " "
   select_all: "a"
   deselect_all: "A"
-  rollout_restart: "R"
 
 # Configure resource tabs (command-based)
-# Each tab runs a kubectl command (without the "kubectl" prefix)
+# Each tab runs a kubectl GET command (without the "kubectl" prefix, "get" is optional)
 tabs:
   - name: "Pods"
-    command: "get pods -A"
+    command: "pods -A"
   - name: "Running"
-    command: "get pods -A --field-selector=status.phase=Running"
+    command: "pods -A --field-selector=status.phase=Running"
   - name: "Deployments"
-    command: "get deployments -A"
+    command: "deployments -A"
   - name: "Services"
-    command: "get services -A"
+    command: "services -A"
   - name: "Nodes"
-    command: "get nodes -o wide"
+    command: "nodes -o wide"
 
 # Examples of tab commands:
 #   command: "get pods -n kube-system"           # Specific namespace
