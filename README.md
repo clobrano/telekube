@@ -159,8 +159,8 @@ Press `/` to activate fuzzy filter mode. The filter uses fuzzy matching to filte
 | `k` / `Up` | Move cursor up |
 | `g` | Go to first item |
 | `G` | Go to last item |
-| `Tab` | Next tab |
-| `Shift+Tab` | Previous tab |
+| `Tab` / `l` | Next tab |
+| `Shift+Tab` / `h` | Previous tab |
 | `1-9` | Jump to tab by number |
 
 ### Views
@@ -177,12 +177,14 @@ Press `/` to activate fuzzy filter mode. The filter uses fuzzy matching to filte
 | Key | Action |
 |-----|--------|
 | `d` | Describe resource |
-| `l` | View logs (pods only) |
-| `L` | Follow logs (pods only) |
-| `D` | Delete resource (with confirmation) |
 | `e` | Edit resource |
+| `D` | Delete resource (with confirmation) |
+| `L` | View logs (pods only) |
 | `T` | Open system terminal |
-| `R` | Rollout restart (deployments) |
+| `s` | Open sort selector (sort by column) |
+| `c` | Copy column data |
+| `C` | Switch kubectl context |
+| `n` | Switch namespace |
 
 ### Selection
 
@@ -206,9 +208,7 @@ Press `/` to activate fuzzy filter mode. The filter uses fuzzy matching to filte
 
 | Key | Action |
 |-----|--------|
-| `c` | Switch kubectl context |
-| `n` | Switch namespace |
-| `/` | Search/filter |
+| `/` | Search/filter resources |
 | `r` | Refresh current view |
 | `?` | Show help |
 | `q` | Quit |
@@ -241,20 +241,27 @@ pager: "less"
 # Custom keybindings
 keybindings:
   quit: "q"
+  help: "?"
+  refresh: "r"
+  search: "/"
   describe: "d"
-  logs: "l"
-  logs_follow: "L"
+  logs: "L"
   delete: "D"
   edit: "e"
   terminal: "T"
   yaml_view: "Y"
-  search: "/"
-  refresh: "r"
-  context: "c"
-  namespace: "n"
+  json_view: "J"
+  switch_namespace: "n"
+  switch_context: "C"
+  copy_data: "c"
   select: " "
   select_all: "a"
   deselect_all: "A"
+  up: "up"
+  down: "down"
+  tab_next: "tab"
+  tab_prev: "shift+tab"
+  delete_tab: "-"
 
 # Configure resource tabs (command-based)
 # Each tab runs a kubectl GET command (without the "kubectl" prefix, "get" is optional)
