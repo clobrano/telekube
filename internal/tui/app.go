@@ -907,10 +907,12 @@ func (m *Model) renderHelp() string {
 	b.WriteString("  1-9          Jump to tab by number\n\n")
 
 	b.WriteString("VIEWS\n")
-	b.WriteString("  Enter        View resource details (table format)\n")
 	b.WriteString("  Y            View as YAML\n")
 	b.WriteString("  J            View as JSON\n")
 	b.WriteString("  Esc          Return to list view\n\n")
+
+	b.WriteString("TAB EDITING\n")
+	b.WriteString("  Enter        Edit current tab command\n\n")
 
 	b.WriteString("ACTIONS\n")
 	b.WriteString("  d            Describe resource\n")
