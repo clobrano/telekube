@@ -31,5 +31,5 @@ release-snapshot:
 	@which goreleaser > /dev/null || (echo "goreleaser not found. Install from https://goreleaser.com" && exit 1)
 	goreleaser release --snapshot --clean
 
-install: build
-	cp $(BINARY_NAME) $(GOPATH)/bin/$(BINARY_NAME) || cp $(BINARY_NAME) $(HOME)/go/bin/$(BINARY_NAME)
+install:
+	go install -ldflags "-X main.version=$(VERSION)" .
