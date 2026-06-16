@@ -37,10 +37,10 @@ make install
 ## Usage
 
 ```bash
-telekube
+telekube [--config /path/to/config.yaml]
 ```
 
-On first run, a default configuration file is created at `~/.config/telekube/config.yaml`.
+On first run, if `--config` flag is not provided, a default configuration file is created at `~/.config/telekube/config.yaml`.
 
 ## Visual Tour
 
