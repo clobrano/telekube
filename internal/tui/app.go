@@ -187,6 +187,9 @@ type Model struct {
 
 	// Refresh timing
 	lastRefreshTime time.Time
+
+	// Help state
+	helpShown bool
 }
 
 // NewModel creates a new application model
@@ -500,7 +503,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "?":
+			// Toggle help view (works from any state)
+			m.helpShown = !m.helpShown
+			return m, nil
 		case "q", "ctrl+c":
+			if m.helpShown {
+				// When help is shown, q just closes it
+				m.helpShown = false
+				return m, nil
+			}
 			return m, tea.Quit
 		case "esc":
 			// Clear an active filter (confirmed via Enter)
@@ -786,6 +798,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the current state
 func (m *Model) View() string {
+	// Help view is full screen overlay
+	if m.helpShown {
+		return m.renderHelp()
+	}
+
 	// Detail view is full screen
 	if m.viewState == ViewDetail {
 		return m.detail.View()
@@ -868,6 +885,61 @@ func (m *Model) View() string {
 	} else {
 		b.WriteString(wrapAtWidth(fmt.Sprintf("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [T]erminal  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [+]new tab [%s]delete tab", deleteTabKey), m.width))
 	}
+
+	return b.String()
+}
+
+// renderHelp returns a full-screen help view
+func (m *Model) renderHelp() string {
+	var b strings.Builder
+
+	b.WriteString("╔════════════════════════════════════════════════════════════════════════════════╗\n")
+	b.WriteString("║                            TELEKUBE KEYBOARD SHORTCUTS                         ║\n")
+	b.WriteString("╚════════════════════════════════════════════════════════════════════════════════╝\n\n")
+
+	b.WriteString("NAVIGATION\n")
+	b.WriteString("  j / ↓        Move cursor down\n")
+	b.WriteString("  k / ↑        Move cursor up\n")
+	b.WriteString("  g            Go to first item\n")
+	b.WriteString("  G            Go to last item\n")
+	b.WriteString("  Tab / l      Next tab\n")
+	b.WriteString("  Shift+Tab/h  Previous tab\n")
+	b.WriteString("  1-9          Jump to tab by number\n\n")
+
+	b.WriteString("VIEWS\n")
+	b.WriteString("  Enter        View resource details (table format)\n")
+	b.WriteString("  Y            View as YAML\n")
+	b.WriteString("  J            View as JSON\n")
+	b.WriteString("  Esc          Return to list view\n\n")
+
+	b.WriteString("ACTIONS\n")
+	b.WriteString("  d            Describe resource\n")
+	b.WriteString("  e            Edit resource\n")
+	b.WriteString("  D            Delete resource (with confirmation)\n")
+	b.WriteString("  L            View logs (pods only)\n")
+	b.WriteString("  T            Open system terminal\n")
+	b.WriteString("  s            Open sort selector (sort by column)\n")
+	b.WriteString("  c            Copy column data\n")
+	b.WriteString("  C            Switch kubectl context\n")
+	b.WriteString("  n            Switch namespace\n\n")
+
+	b.WriteString("SELECTION\n")
+	b.WriteString("  Space        Toggle selection on current item\n")
+	b.WriteString("  a            Select all\n")
+	b.WriteString("  A            Deselect all\n\n")
+
+	b.WriteString("CONFIG EDITING\n")
+	b.WriteString("  +            Add a new tab (prompts for name then command)\n")
+	b.WriteString("  Ctrl+W       Save current tab command to config.yaml\n")
+	b.WriteString("  -            Delete current tab\n\n")
+
+	b.WriteString("OTHER\n")
+	b.WriteString("  /            Search/filter resources\n")
+	b.WriteString("  r            Refresh current view\n")
+	b.WriteString("  ?            Toggle this help view\n")
+	b.WriteString("  q / Ctrl+C   Quit\n\n")
+
+	b.WriteString("Press [?] to close this help view\n")
 
 	return b.String()
 }
