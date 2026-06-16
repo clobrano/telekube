@@ -270,10 +270,24 @@ tabs:
   - name: "Nodes"
     command: "nodes -o wide"
 
+# Tab options:
+#   command: kubectl GET command (required)
+#   sort_by: column name to sort by (e.g., "NAME", "AGE", "STATUS") or "creation_time" for the AGE column
+#   sort_reverse: true to reverse the sort order (default: false)
+#
 # Examples of tab commands:
-#   command: "get pods -n kube-system"           # Specific namespace
-#   command: "get pods -l app=nginx"             # Filter by label
-#   command: "get events --sort-by=.lastTimestamp"  # Sorted events
+#   command: "pods -n kube-system"           # Specific namespace
+#   command: "pods -l app=nginx"             # Filter by label
+#   command: "events -A"                     # All events
+#
+# Examples with sorting:
+#   - name: "Newest Pods"
+#     command: "pods -A"
+#     sort_by: "creation_time"               # Sort by AGE (newest first)
+#   - name: "Deployments by Name"
+#     command: "deployments -A"
+#     sort_by: "NAME"
+#     sort_reverse: true
 ```
 
 ## Development
