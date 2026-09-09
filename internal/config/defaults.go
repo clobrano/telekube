@@ -10,7 +10,7 @@ func DefaultConfig() *Config {
 		RefreshInterval:      5 * time.Second,
 		LogsFollowInNewShell: true,
 		Keybindings: Keybindings{
-			Quit:            "q",
+			Quit:            "Q",
 			Help:            "?",
 			Refresh:         "r",
 			Search:          "/",

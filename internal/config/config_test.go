@@ -30,8 +30,8 @@ func TestDefaultConfig(t *testing.T) {
 	}
 
 	// Check some keybindings
-	if cfg.Keybindings.Quit != "q" {
-		t.Errorf("expected quit keybinding to be 'q', got '%s'", cfg.Keybindings.Quit)
+	if cfg.Keybindings.Quit != "Q" {
+		t.Errorf("expected quit keybinding to be 'Q', got '%s'", cfg.Keybindings.Quit)
 	}
 
 	if cfg.Keybindings.Help != "?" {
@@ -148,7 +148,7 @@ custom_commands:
 	}
 
 	// Check that defaults are preserved for unspecified keybindings
-	if cfg.Keybindings.Quit != "q" {
+	if cfg.Keybindings.Quit != "Q" {
 		t.Errorf("expected default quit keybinding to be preserved, got '%s'", cfg.Keybindings.Quit)
 	}
 }

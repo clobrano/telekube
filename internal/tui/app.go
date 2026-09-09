@@ -359,13 +359,17 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch msg.String() {
+			case m.config.Keybindings.Quit, "ctrl+c":
+				// The quit key (capital Q by default) and Ctrl+C quit the whole
+				// application, even from a detail view.
+				return m, tea.Quit
 			case "esc", "q":
-				// Both Esc and q return to the list in a single press. Any search
-				// highlight is discarded on the way out (an *open* search bar is
-				// handled above by detail.IsSearching(), where these keys interact
-				// with the input instead). q is safe here: in the detail view it
-				// only goes back, it never quits the application (that is the list
-				// view's job). Keeping q available gives a reliable exit in
+				// Both Esc and lowercase q return to the list in a single press.
+				// Any search highlight is discarded on the way out (an *open*
+				// search bar is handled above by detail.IsSearching(), where these
+				// keys interact with the input instead). Lowercase q is safe here:
+				// it only goes back, it never quits the application (that is the
+				// quit key's job). Keeping q available gives a reliable exit in
 				// terminals/multiplexers where a lone Esc is delayed or swallowed
 				// (e.g. tmux's escape-time), which is why the Esc hint alone was
 				// not enough.
@@ -508,12 +512,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Ctrl+C still quits from anywhere.
 		if m.helpShown {
 			switch msg.String() {
-			case "esc", "q", "?":
-				// Esc, q or ? all close the help overlay. q here only closes the
-				// overlay, it does not quit the app.
-				m.helpShown = false
-			case "ctrl+c":
+			case m.config.Keybindings.Quit, "ctrl+c":
+				// The quit key (capital Q) and Ctrl+C quit the app from anywhere.
 				return m, tea.Quit
+			case "esc", "q", "?":
+				// Esc, lowercase q, or ? close the help overlay (they do not quit).
+				m.helpShown = false
 			}
 			return m, nil
 		}
@@ -522,8 +526,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Toggle help view
 			m.helpShown = !m.helpShown
 			return m, nil
-		case "q", "ctrl+c":
-			// q and Ctrl+C quit the application from the list view.
+		case m.config.Keybindings.Quit, "ctrl+c":
+			// Only the quit key (capital Q by default) and Ctrl+C quit the
+			// application. Lowercase q never quits — it is a safe back key in the
+			// other views.
 			return m, tea.Quit
 		case "esc":
 			// Clear an active filter (confirmed via Enter)
@@ -878,6 +884,7 @@ func (m *Model) View() string {
 	// Footer/help
 	b.WriteString("\n\n")
 	deleteTabKey := m.config.Keybindings.DeleteTab
+	quitKey := m.config.Keybindings.Quit
 	if m.loading {
 		b.WriteString(m.spinner.View() + " Loading...")
 	} else if m.search.IsActive() {
@@ -892,9 +899,9 @@ func (m *Model) View() string {
 	} else if m.search.IsFiltered() {
 		b.WriteString(wrapAtWidth(fmt.Sprintf("[Esc] clear filter  [/] modify filter  [d]escribe [L]ogs [D]elete [e]dit [T]erminal  [+]new tab [%s]delete tab", deleteTabKey), m.width))
 	} else if m.currentTab == SearchTabIndex {
-		b.WriteString(wrapAtWidth(fmt.Sprintf("[Enter] enter command  [/]filter results  [r]efresh  [q]uit  [+]new tab [%s]delete tab", deleteTabKey), m.width))
+		b.WriteString(wrapAtWidth(fmt.Sprintf("[Enter] enter command  [/]filter results  [r]efresh  [%s]uit  [+]new tab [%s]delete tab", quitKey, deleteTabKey), m.width))
 	} else {
-		b.WriteString(wrapAtWidth(fmt.Sprintf("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [T]erminal  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [+]new tab [%s]delete tab", deleteTabKey), m.width))
+		b.WriteString(wrapAtWidth(fmt.Sprintf("[d]escribe [L]ogs [Y]aml [D]elete [e]dit [T]erminal  [c]ontext [n]amespace  [s]ort [/]search [r]efresh [?]help  [%s]uit  [+]new tab [%s]delete tab", quitKey, deleteTabKey), m.width))
 	}
 
 	return b.String()
@@ -950,7 +957,8 @@ func (m *Model) renderHelp() string {
 	b.WriteString("  /            Search/filter resources\n")
 	b.WriteString("  r            Refresh current view\n")
 	b.WriteString("  ?            Toggle this help view\n")
-	b.WriteString("  q / Ctrl+C   Quit\n\n")
+	b.WriteString("  Esc / q      Go back / cancel (never quits)\n")
+	b.WriteString("  Q / Ctrl+C   Quit the application\n\n")
 
 	b.WriteString("Press [Esc], [q] or [?] to close this help view\n")
 

@@ -94,18 +94,50 @@ func TestDetailQExits(t *testing.T) {
 	}
 }
 
-// TestListQQuits verifies q still quits from the list view.
-func TestListQQuits(t *testing.T) {
+// TestListCapitalQQuits verifies capital Q quits from the list view.
+func TestListCapitalQQuits(t *testing.T) {
+	m := newTestModel()
+	m.viewState = ViewList
+
+	_, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'Q'}})
+	if cmd == nil {
+		t.Fatal("Q in list view returned nil cmd, want tea.Quit")
+	}
+	if msg := cmd(); msg == nil {
+		t.Fatal("Q in list view produced nil msg, want tea.QuitMsg")
+	} else if _, isQuit := msg.(tea.QuitMsg); !isQuit {
+		t.Fatalf("Q in list view produced %T, want tea.QuitMsg", msg)
+	}
+}
+
+// TestListLowerQDoesNotQuit verifies lowercase q never quits the application.
+func TestListLowerQDoesNotQuit(t *testing.T) {
 	m := newTestModel()
 	m.viewState = ViewList
 
 	_, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+	if cmd != nil {
+		if msg := cmd(); msg != nil {
+			if _, isQuit := msg.(tea.QuitMsg); isQuit {
+				t.Fatal("lowercase q quit the application from the list view; only Q must quit")
+			}
+		}
+	}
+}
+
+// TestDetailCapitalQQuits verifies capital Q quits directly from a detail view.
+func TestDetailCapitalQQuits(t *testing.T) {
+	m := newTestModel()
+	m.detail.SetContent("pod-x", "apiVersion: v1", detail.FormatYAML)
+	m.viewState = ViewDetail
+
+	_, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'Q'}})
 	if cmd == nil {
-		t.Fatal("q in list view returned nil cmd, want tea.Quit")
+		t.Fatal("Q in detail view returned nil cmd, want tea.Quit")
 	}
 	if msg := cmd(); msg == nil {
-		t.Fatal("q in list view produced nil msg, want tea.QuitMsg")
+		t.Fatal("Q in detail view produced nil msg, want tea.QuitMsg")
 	} else if _, isQuit := msg.(tea.QuitMsg); !isQuit {
-		t.Fatalf("q in list view produced %T, want tea.QuitMsg", msg)
+		t.Fatalf("Q in detail view produced %T, want tea.QuitMsg", msg)
 	}
 }
