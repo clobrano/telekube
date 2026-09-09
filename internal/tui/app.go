@@ -662,8 +662,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.openSortSelector()
 			return m, nil
 		case "d":
-			// Describe selected resource(s)
-			return m, m.startLoading(m.describeResources())
+			// Describe selected resource(s). When the current tab shows both an
+			// ID and a NAME column, ask which identifier to describe by first.
+			if m.currentTabHasIDAndName() {
+				m.openDescribeBySelector()
+				return m, nil
+			}
+			return m, m.startLoading(m.describeResources(""))
 		case "L":
 			// View logs (for pods) - show selector with log options
 			return m, m.startLoading(m.viewLogs())
@@ -1126,8 +1131,33 @@ func (m *Model) loadResourceDetail(format detail.Format) tea.Cmd {
 	}
 }
 
+// currentTabHasIDAndName reports whether the current tab's table has both an
+// ID column and a NAME column, in which case describe can target either.
+func (m *Model) currentTabHasIDAndName() bool {
+	if m.resources == nil {
+		return false
+	}
+	return m.resources.GetColumnIndex("ID") >= 0 && m.resources.GetColumnIndex("NAME") >= 0
+}
+
+// openDescribeBySelector opens a selector asking whether to describe the
+// selected resource(s) by NAME or by ID.
+func (m *Model) openDescribeBySelector() {
+	m.selector = dialog.NewSelector("Describe by", []string{"Name", "ID"})
+	m.selector.SetSize(m.width, m.height)
+	m.pendingAction = "describe-by"
+	m.viewState = ViewSelector
+}
+
 // getSelectedResourceInfo returns resource names and namespace for selected items
 func (m *Model) getSelectedResourceInfo() (names []string, namespace string) {
+	return m.getSelectedResourceInfoBy("")
+}
+
+// getSelectedResourceInfoBy returns the selected items' identifiers (read from
+// the idColumn column) and their namespace. When idColumn is empty it defaults
+// to the NAME column, falling back to the first column when NAME is absent.
+func (m *Model) getSelectedResourceInfoBy(idColumn string) (names []string, namespace string) {
 	namespace = m.currentNamespace
 
 	// Get selected items (or current item if none selected)
@@ -1143,10 +1173,13 @@ func (m *Model) getSelectedResourceInfo() (names []string, namespace string) {
 	if m.resources != nil {
 		// Check for NAMESPACE column (present in -A commands)
 		namespaceIdx = m.resources.GetColumnIndex("NAMESPACE")
-		// NAME column might be after NAMESPACE
-		nameColIdx := m.resources.GetColumnIndex("NAME")
-		if nameColIdx >= 0 {
-			nameIdx = nameColIdx
+		// Identifier column defaults to NAME (which might be after NAMESPACE)
+		col := idColumn
+		if col == "" {
+			col = "NAME"
+		}
+		if idx := m.resources.GetColumnIndex(col); idx >= 0 {
+			nameIdx = idx
 		}
 	}
 
@@ -1173,10 +1206,12 @@ func (m *Model) getSelectedResourceInfo() (names []string, namespace string) {
 	return names, namespace
 }
 
-// describeResources returns a command to describe selected resources
-func (m *Model) describeResources() tea.Cmd {
+// describeResources returns a command to describe selected resources.
+// idColumn selects which column provides the identifier passed to describe;
+// an empty value uses the NAME column (the default behavior).
+func (m *Model) describeResources(idColumn string) tea.Cmd {
 	return func() tea.Msg {
-		names, namespace := m.getSelectedResourceInfo()
+		names, namespace := m.getSelectedResourceInfoBy(idColumn)
 		if len(names) == 0 {
 			return ErrorMsg{Err: nil}
 		}
@@ -1637,6 +1672,13 @@ func (m *Model) handleSelectorResult() tea.Cmd {
 			}
 		}
 		return nil
+	case "describe-by":
+		// User chose whether to describe by NAME or ID.
+		idColumn := "NAME"
+		if strings.EqualFold(selected, "ID") {
+			idColumn = "ID"
+		}
+		return m.startLoading(m.describeResources(idColumn))
 	case "log-options":
 		// Parse "log <container>" or "log <container> --follow"
 		follow := strings.HasSuffix(selected, " --follow")
