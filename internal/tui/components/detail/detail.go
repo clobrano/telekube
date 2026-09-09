@@ -109,12 +109,16 @@ func New(resourceName, content string, format Format) *Model {
 	}
 }
 
-// SetContent updates the content and format
+// SetContent updates the content and format. It also resets any search state
+// so a freshly opened view never inherits a stale search from a previous one
+// (a lingering search query or an open search bar would otherwise absorb the
+// Esc key and prevent the view from closing).
 func (m *Model) SetContent(resourceName, content string, format Format) {
 	m.resourceName = resourceName
 	m.content = content
 	m.format = format
 	m.scrollOffset = 0
+	m.ClearSearch()
 }
 
 // StartSearch activates the search input bar
@@ -401,9 +405,9 @@ func (m *Model) View() string {
 
 	// Header with resource name and format
 	headerText := fmt.Sprintf("%s - %s", m.resourceName, m.format.String())
-	hintText := "[Esc] Back  [/] Search"
+	hintText := "[Esc/q] Back  [/] Search  [Q]uit"
 	if m.searchQuery != "" {
-		hintText = "[Esc] Back  [/] Search  [n/N] Next/Prev"
+		hintText = "[Esc/q] Back  [/] Search  [n/N] Next/Prev  [Q]uit"
 	}
 	hint := m.styles.Hint.Render(hintText)
 	headerPadding := m.width - lipgloss.Width(headerText) - lipgloss.Width(hint) - 4

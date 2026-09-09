@@ -99,6 +99,19 @@ func TestSelectorCancel(t *testing.T) {
 	}
 }
 
+func TestSelectorQCancels(t *testing.T) {
+	items := []string{"item1", "item2"}
+	s := NewSelector("Select", items)
+
+	// Press 'q' - cancels the selector. Safe (never quits the app from a dialog)
+	// and works where a lone Esc is delayed (e.g. tmux).
+	s, _ = s.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+
+	if s.Result() != SelectorCancelled {
+		t.Errorf("Result after 'q' = %v, want SelectorCancelled", s.Result())
+	}
+}
+
 func TestSelectorReset(t *testing.T) {
 	items := []string{"item1", "item2"}
 	s := NewSelector("Select", items)

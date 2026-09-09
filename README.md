@@ -151,6 +151,11 @@ Press `/` to activate fuzzy filter mode. The filter uses fuzzy matching to filte
 
 ## Keyboard Shortcuts
 
+> **Going back vs. quitting:** `Esc` or lowercase `q` always mean **go back / cancel**
+> the current view or dialog — they never close the application. Only **capital `Q`**
+> (or `Ctrl+C`) quits telekube. This keeps a stray `q` from killing the app, and gives
+> you a reliable way out of a view in terminals where `Esc` is delayed (e.g. tmux).
+
 ### Navigation
 
 | Key | Action |
@@ -170,7 +175,7 @@ Press `/` to activate fuzzy filter mode. The filter uses fuzzy matching to filte
 | `Enter` | View resource details (table format) |
 | `Y` | View as YAML |
 | `J` | View as JSON |
-| `Esc` | Return to list view |
+| `Esc` / `q` | Return to list view (does not quit) |
 
 ### Actions
 
@@ -211,7 +216,8 @@ Press `/` to activate fuzzy filter mode. The filter uses fuzzy matching to filte
 | `/` | Search/filter resources |
 | `r` | Refresh current view |
 | `?` | Show help |
-| `q` | Quit |
+| `Esc` / `q` | Go back / cancel (never quits) |
+| `Q` / `Ctrl+C` | Quit the application |
 
 ## Detail View
 
@@ -225,7 +231,8 @@ When viewing resource details (`Enter`, `Y`, or `J`), use these keys to navigate
 | `u` | Scroll half page up |
 | `g` | Go to top |
 | `G` | Go to bottom |
-| `Esc` / `q` | Return to list |
+| `Esc` / `q` | Return to list (goes back; does not quit) |
+| `Q` / `Ctrl+C` | Quit the application |
 
 ## Configuration
 
@@ -240,7 +247,7 @@ pager: "less"
 
 # Custom keybindings
 keybindings:
-  quit: "q"
+  quit: "Q"   # capital Q quits the app; Esc / lowercase q go back
   help: "?"
   refresh: "r"
   search: "/"

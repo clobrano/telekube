@@ -132,6 +132,8 @@ func (m *ConfirmModel) View() string {
 	yesBtn := m.styles.ButtonYes.Render("[Y]es")
 	noBtn := m.styles.ButtonNo.Render("[N]o")
 	b.WriteString(fmt.Sprintf("%s  /  %s", yesBtn, noBtn))
+	b.WriteString("\n\n")
+	b.WriteString(m.styles.Button.Render("[Esc/q] cancel"))
 
 	content := m.styles.Dialog.Render(b.String())
 

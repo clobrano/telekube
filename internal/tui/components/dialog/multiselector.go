@@ -157,7 +157,7 @@ func (m *MultiSelectorModel) View() string {
 	}
 
 	b.WriteString("\n\n")
-	b.WriteString("[space] toggle  [enter] copy  [esc] cancel")
+	b.WriteString("[space] toggle  [enter] copy  [esc/q] cancel")
 
 	content := m.styles.Dialog.Render(b.String())
 
