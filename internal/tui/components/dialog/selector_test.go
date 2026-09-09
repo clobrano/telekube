@@ -99,6 +99,19 @@ func TestSelectorCancel(t *testing.T) {
 	}
 }
 
+func TestSelectorQDoesNotCancel(t *testing.T) {
+	items := []string{"item1", "item2"}
+	s := NewSelector("Select", items)
+
+	// Press 'q' - must NOT cancel. Esc is the uniform cancel/back key; 'q' is
+	// reserved for quitting the application.
+	s, _ = s.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+
+	if s.Result() != SelectorPending {
+		t.Errorf("Result after 'q' = %v, want SelectorPending", s.Result())
+	}
+}
+
 func TestSelectorReset(t *testing.T) {
 	items := []string{"item1", "item2"}
 	s := NewSelector("Select", items)

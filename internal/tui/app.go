@@ -359,12 +359,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch msg.String() {
-			case "q":
-				m.detail.ClearSearch()
-				m.viewState = ViewList
-				return m, nil
 			case "esc":
-				// If a search query is active, clear it first; otherwise go back
+				// If a search query is active, clear it first; otherwise go back.
+				// Esc is the uniform "back" key across all views; q is reserved
+				// for quitting the application (from the list view only) to avoid
+				// accidentally killing the app out of muscle memory.
 				if m.detail.HasSearchQuery() {
 					m.detail.ClearSearch()
 				} else {
@@ -502,17 +501,25 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		// When the help overlay is open it captures input: Esc or ? closes it,
+		// and other keys are ignored so list actions don't fire behind it.
+		// Ctrl+C still quits from anywhere.
+		if m.helpShown {
+			switch msg.String() {
+			case "esc", "?":
+				m.helpShown = false
+			case "ctrl+c":
+				return m, tea.Quit
+			}
+			return m, nil
+		}
 		switch msg.String() {
 		case "?":
-			// Toggle help view (works from any state)
+			// Toggle help view
 			m.helpShown = !m.helpShown
 			return m, nil
 		case "q", "ctrl+c":
-			if m.helpShown {
-				// When help is shown, q just closes it
-				m.helpShown = false
-				return m, nil
-			}
+			// q and Ctrl+C quit the application from the list view.
 			return m, tea.Quit
 		case "esc":
 			// Clear an active filter (confirmed via Enter)
@@ -941,7 +948,7 @@ func (m *Model) renderHelp() string {
 	b.WriteString("  ?            Toggle this help view\n")
 	b.WriteString("  q / Ctrl+C   Quit\n\n")
 
-	b.WriteString("Press [?] to close this help view\n")
+	b.WriteString("Press [Esc] or [?] to close this help view\n")
 
 	return b.String()
 }

@@ -217,8 +217,6 @@ func (m *SelectorModel) Update(msg tea.Msg) (*SelectorModel, tea.Cmd) {
 			} else {
 				m.result = SelectorCancelled
 			}
-		case key.Matches(msg, key.NewBinding(key.WithKeys("q"))):
-			m.result = SelectorCancelled
 		case key.Matches(msg, key.NewBinding(key.WithKeys("/"))):
 			m.filterActive = true
 			m.filterInput.Focus()

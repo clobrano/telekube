@@ -101,7 +101,7 @@ func (m *MultiSelectorModel) Update(msg tea.Msg) (*MultiSelectorModel, tea.Cmd) 
 				m.selected[m.cursor] = true
 			}
 			m.result = MultiSelectorConfirmed
-		case key.Matches(msg, key.NewBinding(key.WithKeys("esc", "q"))):
+		case key.Matches(msg, key.NewBinding(key.WithKeys("esc"))):
 			m.result = MultiSelectorCancelled
 		}
 	}
