@@ -359,13 +359,16 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch msg.String() {
-			case "esc":
-				// Esc reliably returns to the list in a single press. Any search
+			case "esc", "q":
+				// Both Esc and q return to the list in a single press. Any search
 				// highlight is discarded on the way out (an *open* search bar is
-				// handled above by detail.IsSearching(), where Esc closes the bar
-				// first). Esc is the uniform "back" key across all views; q is
-				// reserved for quitting the application (from the list view only)
-				// to avoid accidentally killing the app out of muscle memory.
+				// handled above by detail.IsSearching(), where these keys interact
+				// with the input instead). q is safe here: in the detail view it
+				// only goes back, it never quits the application (that is the list
+				// view's job). Keeping q available gives a reliable exit in
+				// terminals/multiplexers where a lone Esc is delayed or swallowed
+				// (e.g. tmux's escape-time), which is why the Esc hint alone was
+				// not enough.
 				m.detail.ClearSearch()
 				m.viewState = ViewList
 				return m, nil
@@ -505,7 +508,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Ctrl+C still quits from anywhere.
 		if m.helpShown {
 			switch msg.String() {
-			case "esc", "?":
+			case "esc", "q", "?":
+				// Esc, q or ? all close the help overlay. q here only closes the
+				// overlay, it does not quit the app.
 				m.helpShown = false
 			case "ctrl+c":
 				return m, tea.Quit
@@ -915,7 +920,7 @@ func (m *Model) renderHelp() string {
 	b.WriteString("VIEWS\n")
 	b.WriteString("  Y            View as YAML\n")
 	b.WriteString("  J            View as JSON\n")
-	b.WriteString("  Esc          Return to list view\n\n")
+	b.WriteString("  Esc / q      Return to list view (q here goes back, not quit)\n\n")
 
 	b.WriteString("TAB EDITING\n")
 	b.WriteString("  Enter        Edit current tab command\n\n")
@@ -947,7 +952,7 @@ func (m *Model) renderHelp() string {
 	b.WriteString("  ?            Toggle this help view\n")
 	b.WriteString("  q / Ctrl+C   Quit\n\n")
 
-	b.WriteString("Press [Esc] or [?] to close this help view\n")
+	b.WriteString("Press [Esc], [q] or [?] to close this help view\n")
 
 	return b.String()
 }

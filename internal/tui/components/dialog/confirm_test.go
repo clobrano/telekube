@@ -48,15 +48,15 @@ func TestConfirmEsc(t *testing.T) {
 	}
 }
 
-func TestConfirmQDoesNotCancel(t *testing.T) {
+func TestConfirmQCancels(t *testing.T) {
 	c := NewConfirm("Delete?", "Are you sure?")
 
-	// Press 'q' - must NOT cancel the dialog. 'q' is reserved for quitting the
-	// application; Esc is the uniform cancel/back key.
+	// Press 'q' - cancels (answers No). q is a safe exit from a dialog (it never
+	// quits the app) and works where a lone Esc is delayed (e.g. tmux).
 	c, _ = c.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
 
-	if c.Result() != ConfirmPending {
-		t.Errorf("Result after 'q' = %v, want ConfirmPending", c.Result())
+	if c.Result() != ConfirmNo {
+		t.Errorf("Result after 'q' = %v, want ConfirmNo", c.Result())
 	}
 }
 

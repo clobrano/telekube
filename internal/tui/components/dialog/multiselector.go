@@ -101,7 +101,7 @@ func (m *MultiSelectorModel) Update(msg tea.Msg) (*MultiSelectorModel, tea.Cmd) 
 				m.selected[m.cursor] = true
 			}
 			m.result = MultiSelectorConfirmed
-		case key.Matches(msg, key.NewBinding(key.WithKeys("esc"))):
+		case key.Matches(msg, key.NewBinding(key.WithKeys("esc", "q"))):
 			m.result = MultiSelectorCancelled
 		}
 	}
@@ -157,7 +157,7 @@ func (m *MultiSelectorModel) View() string {
 	}
 
 	b.WriteString("\n\n")
-	b.WriteString("[space] toggle  [enter] copy  [esc] cancel")
+	b.WriteString("[space] toggle  [enter] copy  [esc/q] cancel")
 
 	content := m.styles.Dialog.Render(b.String())
 

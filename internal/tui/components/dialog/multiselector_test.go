@@ -24,13 +24,14 @@ func TestMultiSelectorEscCancels(t *testing.T) {
 	}
 }
 
-func TestMultiSelectorQDoesNotCancel(t *testing.T) {
+func TestMultiSelectorQCancels(t *testing.T) {
 	m := newTestMultiSelector()
 
-	// Press 'q' - must NOT cancel. 'q' is reserved for quitting the application.
+	// Press 'q' - cancels. Safe (never quits the app from a dialog) and works
+	// where a lone Esc is delayed (e.g. tmux).
 	m, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
 
-	if m.Result() != MultiSelectorPending {
-		t.Errorf("Result after 'q' = %v, want MultiSelectorPending", m.Result())
+	if m.Result() != MultiSelectorCancelled {
+		t.Errorf("Result after 'q' = %v, want MultiSelectorCancelled", m.Result())
 	}
 }

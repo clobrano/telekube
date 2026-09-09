@@ -225,7 +225,7 @@ When viewing resource details (`Enter`, `Y`, or `J`), use these keys to navigate
 | `u` | Scroll half page up |
 | `g` | Go to top |
 | `G` | Go to bottom |
-| `Esc` | Return to list |
+| `Esc` / `q` | Return to list (here `q` goes back; it does not quit) |
 
 ## Configuration
 

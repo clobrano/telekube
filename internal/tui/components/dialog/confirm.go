@@ -109,7 +109,7 @@ func (m *ConfirmModel) Update(msg tea.Msg) (*ConfirmModel, tea.Cmd) {
 		switch {
 		case key.Matches(msg, key.NewBinding(key.WithKeys("y", "Y", "enter"))):
 			m.result = ConfirmYes
-		case key.Matches(msg, key.NewBinding(key.WithKeys("n", "N", "esc"))):
+		case key.Matches(msg, key.NewBinding(key.WithKeys("n", "N", "esc", "q"))):
 			m.result = ConfirmNo
 		}
 	}
@@ -133,7 +133,7 @@ func (m *ConfirmModel) View() string {
 	noBtn := m.styles.ButtonNo.Render("[N]o")
 	b.WriteString(fmt.Sprintf("%s  /  %s", yesBtn, noBtn))
 	b.WriteString("\n\n")
-	b.WriteString(m.styles.Button.Render("[Esc] cancel"))
+	b.WriteString(m.styles.Button.Render("[Esc/q] cancel"))
 
 	content := m.styles.Dialog.Render(b.String())
 

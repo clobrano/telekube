@@ -183,7 +183,7 @@ func TestViewContainsHeader(t *testing.T) {
 		t.Error("View should contain format name")
 	}
 
-	if !strings.Contains(view, "[Esc] Back") {
+	if !strings.Contains(view, "[Esc/q] Back") {
 		t.Error("View should contain back hint")
 	}
 }

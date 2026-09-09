@@ -217,6 +217,10 @@ func (m *SelectorModel) Update(msg tea.Msg) (*SelectorModel, tea.Cmd) {
 			} else {
 				m.result = SelectorCancelled
 			}
+		case key.Matches(msg, key.NewBinding(key.WithKeys("q"))):
+			// q cancels too (safe: it does not quit the app from a dialog) and
+			// provides a reliable exit where a lone Esc is delayed (e.g. tmux).
+			m.result = SelectorCancelled
 		case key.Matches(msg, key.NewBinding(key.WithKeys("/"))):
 			m.filterActive = true
 			m.filterInput.Focus()
@@ -298,11 +302,11 @@ func (m *SelectorModel) View() string {
 	if m.filterActive {
 		b.WriteString("[Enter] confirm filter  [Esc] clear filter")
 	} else {
-		hints := "[Enter] select  [/] filter  [Esc] "
+		hints := "[Enter] select  [/] filter  "
 		if m.filterPattern != "" {
-			hints += "clear filter"
+			hints += "[Esc] clear filter  [q] cancel"
 		} else {
-			hints += "cancel"
+			hints += "[Esc/q] cancel"
 		}
 		b.WriteString(hints)
 	}

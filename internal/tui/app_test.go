@@ -69,3 +69,43 @@ func TestDetailEscExitsSinglePress(t *testing.T) {
 		t.Fatalf("viewState after Esc = %v, want ViewList", m.viewState)
 	}
 }
+
+// TestDetailQExits verifies q also returns to the list from a detail/result
+// view (a reliable exit where a lone Esc is delayed, e.g. tmux) and that it
+// does NOT quit the application.
+func TestDetailQExits(t *testing.T) {
+	m := newTestModel()
+	m.detail.SetContent("Delete Result", "Deleted computeinstance 'x'.", detail.FormatTable)
+	m.viewState = ViewDetail
+
+	upd, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+	m = upd.(*Model)
+
+	if m.viewState != ViewList {
+		t.Fatalf("viewState after q = %v, want ViewList", m.viewState)
+	}
+	if cmd != nil {
+		// tea.Quit is a non-nil command; q must not quit from the detail view.
+		if msg := cmd(); msg != nil {
+			if _, isQuit := msg.(tea.QuitMsg); isQuit {
+				t.Fatal("q quit the application from the detail view; it must only go back")
+			}
+		}
+	}
+}
+
+// TestListQQuits verifies q still quits from the list view.
+func TestListQQuits(t *testing.T) {
+	m := newTestModel()
+	m.viewState = ViewList
+
+	_, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'q'}})
+	if cmd == nil {
+		t.Fatal("q in list view returned nil cmd, want tea.Quit")
+	}
+	if msg := cmd(); msg == nil {
+		t.Fatal("q in list view produced nil msg, want tea.QuitMsg")
+	} else if _, isQuit := msg.(tea.QuitMsg); !isQuit {
+		t.Fatalf("q in list view produced %T, want tea.QuitMsg", msg)
+	}
+}

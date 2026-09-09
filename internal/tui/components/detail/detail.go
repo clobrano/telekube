@@ -405,9 +405,9 @@ func (m *Model) View() string {
 
 	// Header with resource name and format
 	headerText := fmt.Sprintf("%s - %s", m.resourceName, m.format.String())
-	hintText := "[Esc] Back  [/] Search"
+	hintText := "[Esc/q] Back  [/] Search"
 	if m.searchQuery != "" {
-		hintText = "[Esc] Back  [/] Search  [n/N] Next/Prev"
+		hintText = "[Esc/q] Back  [/] Search  [n/N] Next/Prev"
 	}
 	hint := m.styles.Hint.Render(hintText)
 	headerPadding := m.width - lipgloss.Width(headerText) - lipgloss.Width(hint) - 4
