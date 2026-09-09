@@ -360,15 +360,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyMsg:
 			switch msg.String() {
 			case "esc":
-				// If a search query is active, clear it first; otherwise go back.
-				// Esc is the uniform "back" key across all views; q is reserved
-				// for quitting the application (from the list view only) to avoid
-				// accidentally killing the app out of muscle memory.
-				if m.detail.HasSearchQuery() {
-					m.detail.ClearSearch()
-				} else {
-					m.viewState = ViewList
-				}
+				// Esc reliably returns to the list in a single press. Any search
+				// highlight is discarded on the way out (an *open* search bar is
+				// handled above by detail.IsSearching(), where Esc closes the bar
+				// first). Esc is the uniform "back" key across all views; q is
+				// reserved for quitting the application (from the list view only)
+				// to avoid accidentally killing the app out of muscle memory.
+				m.detail.ClearSearch()
+				m.viewState = ViewList
 				return m, nil
 			case "/":
 				m.detail.StartSearch()
@@ -1293,6 +1292,7 @@ func (m *Model) executeDelete() tea.Cmd {
 		m.detail.SetContent("Delete Result", strings.Join(messages, "\n"), detail.FormatTable)
 		m.detail.SetSize(m.width, m.height-2)
 		m.viewState = ViewDetail
+		m.loading = false
 
 		return nil
 	}
@@ -1591,6 +1591,7 @@ func (m *Model) rolloutRestart() tea.Cmd {
 		m.detail.SetContent("Rollout Restart", output, detail.FormatTable)
 		m.detail.SetSize(m.width, m.height-2)
 		m.viewState = ViewDetail
+		m.loading = false
 
 		return nil
 	}

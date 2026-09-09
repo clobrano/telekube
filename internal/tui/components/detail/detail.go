@@ -109,12 +109,16 @@ func New(resourceName, content string, format Format) *Model {
 	}
 }
 
-// SetContent updates the content and format
+// SetContent updates the content and format. It also resets any search state
+// so a freshly opened view never inherits a stale search from a previous one
+// (a lingering search query or an open search bar would otherwise absorb the
+// Esc key and prevent the view from closing).
 func (m *Model) SetContent(resourceName, content string, format Format) {
 	m.resourceName = resourceName
 	m.content = content
 	m.format = format
 	m.scrollOffset = 0
+	m.ClearSearch()
 }
 
 // StartSearch activates the search input bar

@@ -3,6 +3,8 @@ package detail
 import (
 	"strings"
 	"testing"
+
+	tea "github.com/charmbracelet/bubbletea"
 )
 
 func TestNew(t *testing.T) {
@@ -35,6 +37,32 @@ func TestSetContent(t *testing.T) {
 
 	if d.Content() != "new content" {
 		t.Errorf("Content() after SetContent = %q, want %q", d.Content(), "new content")
+	}
+}
+
+// TestSetContentResetsSearch guards against search state leaking into a freshly
+// opened view. A lingering query or open search bar would otherwise absorb the
+// Esc key and prevent the view from closing.
+func TestSetContentResetsSearch(t *testing.T) {
+	d := New("pod", "line one\nline two\nline three", FormatYAML)
+
+	// Simulate an active search with a confirmed query.
+	d.StartSearch()
+	d.searchInput.SetValue("line")
+	d, _ = d.Update(tea.KeyMsg{Type: tea.KeyEnter})
+
+	if !d.HasSearchQuery() {
+		t.Fatal("precondition: expected an active search query")
+	}
+
+	// Loading new content must wipe all search state.
+	d.SetContent("Delete Result", "Deleted foo.", FormatTable)
+
+	if d.HasSearchQuery() {
+		t.Error("HasSearchQuery() = true after SetContent, want false")
+	}
+	if d.IsSearching() {
+		t.Error("IsSearching() = true after SetContent, want false")
 	}
 }
 
